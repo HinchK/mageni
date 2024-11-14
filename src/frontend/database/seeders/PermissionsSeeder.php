@@ -14,7 +14,7 @@ class PermissionsSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         /**
          * Search for first user

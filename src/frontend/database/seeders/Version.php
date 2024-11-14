@@ -12,7 +12,7 @@ class Version extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         DB::table('version')->insert([
             'api_key' => 'ieaJXpA3EC37aZug27g0WQ8Ktz0jE7K8lOBkilGE',
