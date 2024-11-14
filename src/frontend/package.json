@@ -9,13 +9,13 @@
         "@tailwindcss/typography": "^0.4.0",
         "@types/canvas-confetti": "^1.4.2",
         "alpinejs": "^3.0.6",
-        "axios": "^1.6.0",
+        "axios": "^1.6.4",
         "lodash": "^4.17.19",
         "postcss": "^8.4.31",
         "postcss-import": "^14.0.1",
         "tailwindcss": "^2.2.2",
-        "vite": "^3.2.10",
-        "laravel-vite-plugin": "^0.6.0",
+        "vite": "^5.0.0",
+        "laravel-vite-plugin": "^1.0.0",
         "autoprefixer": "^10.4.0"
     },
     "dependencies": {
