@@ -109,8 +109,6 @@ class Scan
 
     /**
      * Start Scan
-     *
-     * @return bool
      */
     public function start($id): bool
     {
@@ -153,8 +151,6 @@ class Scan
 
     /**
      * Scan Delete
-     *
-     * @return bool
      */
     public function delete($id): bool
     {
@@ -169,8 +165,6 @@ class Scan
 
     /**
      * Scan Archive
-     *
-     * @return bool
      */
     public function lock($id): bool
     {
@@ -185,8 +179,6 @@ class Scan
 
     /**
      * Scan Unarchive
-     *
-     * @return bool
      */
     public function unlock($id): bool
     {
@@ -201,8 +193,6 @@ class Scan
 
     /**
      * Scan Unarchive
-     *
-     * @return bool
      */
     public function clone($id): bool
     {

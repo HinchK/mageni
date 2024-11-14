@@ -197,8 +197,6 @@ class Page extends Component
 
     /**
      * Return in CSV the complete scan
-     *
-     * @return void
      */
     public function exportReport(): void
     {
@@ -210,8 +208,6 @@ class Page extends Component
 
     /**
      * Return in CSV selected rows
-     *
-     * @return void
      */
     public function exportSelected(): void
     {
