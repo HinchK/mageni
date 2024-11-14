@@ -16,10 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/notifications/email/{scan}/{email}', Email::class)->name('email');
 
-Route::group(['middleware' => [
-    'auth:sanctum',
-    'verified',
-]], function () {
+Route::middleware('auth:sanctum', 'verified')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
 
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
