@@ -443,7 +443,7 @@ class Schedules extends Model
         return [
             'creation_time',
             'modification_time',
-            'schedule_next_time'
+            'schedule_next_time',
         ];
     }
 }

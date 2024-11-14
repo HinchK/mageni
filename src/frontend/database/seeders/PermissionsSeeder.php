@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class PermissionsSeeder extends Seeder
 {
@@ -18,7 +17,7 @@ class PermissionsSeeder extends Seeder
     public function run()
     {
         /**
-         * Search for first user 
+         * Search for first user
          */
         $userOne = User::where('id', 1)->first();
 
@@ -79,7 +78,7 @@ class PermissionsSeeder extends Seeder
         $unlock_users = Permission::create(['name' => 'unlock_users']);
         $download_users = Permission::create(['name' => 'download_users']);
         $search_users = Permission::create(['name' => 'search_users']);
-        
+
         /**
          * Policies permissions
          */
@@ -142,14 +141,14 @@ class PermissionsSeeder extends Seeder
         $delete_tickets = Permission::create(['name' => 'delete_tickets']);
         $download_tickets = Permission::create(['name' => 'download_tickets']);
         $search_tickets = Permission::create(['name' => 'search_tickets']);
-        
+
         /**
-         * Dashboard permissions 
+         * Dashboard permissions
          */
         $show_dashboard = Permission::create(['name' => 'show_dashboard']);
 
         /**
-         * Assets permissions 
+         * Assets permissions
          */
         $show_assets = Permission::create(['name' => 'show_assets']);
         $edit_assets = Permission::create(['name' => 'edit_assets']);
@@ -157,7 +156,7 @@ class PermissionsSeeder extends Seeder
         $search_assets = Permission::create(['name' => 'search_assets']);
 
         /**
-         * Audit permissions 
+         * Audit permissions
          */
         $show_audit = Permission::create(['name' => 'show_audit']);
         $download_audit = Permission::create(['name' => 'download_audit']);
@@ -176,26 +175,26 @@ class PermissionsSeeder extends Seeder
         $show_analytics->assignRole($manager);
         $download_analytics->assignRole($manager);
 
-        $show_scans->assignRole($manager); 
-        $start_scans->assignRole($manager); 
-        $restart_scans->assignRole($manager); 
-        $stop_scans->assignRole($manager); 
-        $create_scans->assignRole($manager); 
-        $edit_scans->assignRole($manager); 
-        $delete_scans->assignRole($manager); 
-        $clone_scans->assignRole($manager); 
-        $lock_scans->assignRole($manager); 
-        $unlock_scans->assignRole($manager); 
-        $download_scans->assignRole($manager); 
+        $show_scans->assignRole($manager);
+        $start_scans->assignRole($manager);
+        $restart_scans->assignRole($manager);
+        $stop_scans->assignRole($manager);
+        $create_scans->assignRole($manager);
+        $edit_scans->assignRole($manager);
+        $delete_scans->assignRole($manager);
+        $clone_scans->assignRole($manager);
+        $lock_scans->assignRole($manager);
+        $unlock_scans->assignRole($manager);
+        $download_scans->assignRole($manager);
         $search_scans->assignRole($manager);
 
-        $show_users->assignRole($manager); 
-        $create_users->assignRole($manager); 
-        $edit_users->assignRole($manager); 
-        $delete_users->assignRole($manager); 
-        $lock_users->assignRole($manager); 
-        $unlock_users->assignRole($manager); 
-        $download_users->assignRole($manager); 
+        $show_users->assignRole($manager);
+        $create_users->assignRole($manager);
+        $edit_users->assignRole($manager);
+        $delete_users->assignRole($manager);
+        $lock_users->assignRole($manager);
+        $unlock_users->assignRole($manager);
+        $download_users->assignRole($manager);
         $search_users->assignRole($manager);
 
         $create_policies->assignRole($manager);
@@ -266,7 +265,7 @@ class PermissionsSeeder extends Seeder
         $show_scans->assignRole($viewer);
         $show_tickets->assignRole($viewer);
         $show_vulnerabilities->assignRole($viewer);
-        
+
         /**
          * Assign permissions to ceo
          */
@@ -297,15 +296,15 @@ class PermissionsSeeder extends Seeder
         $show_analytics->assignRole($analyst);
         $download_analytics->assignRole($analyst);
 
-        $show_scans->assignRole($analyst); 
-        $start_scans->assignRole($analyst); 
-        $stop_scans->assignRole($analyst); 
-        $restart_scans->assignRole($analyst); 
-        $create_scans->assignRole($analyst); 
-        $edit_scans->assignRole($analyst); 
-        $clone_scans->assignRole($analyst); 
-        $lock_scans->assignRole($analyst); 
-        $download_scans->assignRole($analyst); 
+        $show_scans->assignRole($analyst);
+        $start_scans->assignRole($analyst);
+        $stop_scans->assignRole($analyst);
+        $restart_scans->assignRole($analyst);
+        $create_scans->assignRole($analyst);
+        $edit_scans->assignRole($analyst);
+        $clone_scans->assignRole($analyst);
+        $lock_scans->assignRole($analyst);
+        $download_scans->assignRole($analyst);
         $search_scans->assignRole($analyst);
 
         $create_policies->assignRole($analyst);
@@ -366,8 +365,8 @@ class PermissionsSeeder extends Seeder
         $show_analytics->assignRole($investigator);
         $download_analytics->assignRole($investigator);
 
-        $show_scans->assignRole($investigator); 
-        $download_scans->assignRole($investigator); 
+        $show_scans->assignRole($investigator);
+        $download_scans->assignRole($investigator);
         $search_scans->assignRole($investigator);
 
         $show_policies->assignRole($investigator);
@@ -416,15 +415,15 @@ class PermissionsSeeder extends Seeder
         $compare_reports->assignRole($auditor);
         $search_reports->assignRole($auditor);
 
-        $show_users->assignRole($auditor); 
-        $download_users->assignRole($auditor); 
+        $show_users->assignRole($auditor);
+        $download_users->assignRole($auditor);
         $search_users->assignRole($auditor);
 
         $show_analytics->assignRole($auditor);
         $download_analytics->assignRole($auditor);
 
-        $show_scans->assignRole($auditor); 
-        $download_scans->assignRole($auditor); 
+        $show_scans->assignRole($auditor);
+        $download_scans->assignRole($auditor);
         $search_scans->assignRole($auditor);
 
         $show_policies->assignRole($auditor);
@@ -477,8 +476,8 @@ class PermissionsSeeder extends Seeder
         $show_analytics->assignRole($sysadmin);
         $download_analytics->assignRole($sysadmin);
 
-        $show_scans->assignRole($sysadmin); 
-        $download_scans->assignRole($sysadmin); 
+        $show_scans->assignRole($sysadmin);
+        $download_scans->assignRole($sysadmin);
         $search_scans->assignRole($sysadmin);
 
         $show_policies->assignRole($sysadmin);

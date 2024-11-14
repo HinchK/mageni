@@ -2,48 +2,47 @@
 
 namespace App\Http\Livewire\Reports;
 
+use App\Http\Livewire\Traits\Methods;
+use App\Http\Livewire\Traits\MultiStepForm;
+use App\Http\Livewire\Traits\Variables;
+use App\Http\Livewire\Traits\WithBulkActions;
+use App\Http\Livewire\Traits\WithSorting;
+use App\Models\Reports;
+use App\Models\Results;
+use App\Models\Task;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
-use App\Models\{
-    Reports,
-    Results,
-    Task
-};
-
-use App\Http\Livewire\Traits\{
-    Methods,
-    Variables,
-    MultiStepForm,
-    WithBulkActions,
-    WithSorting
-};
-
-use Illuminate\Support\Facades\DB;
-
-use Livewire\Component;
 
 class Page extends Component
 {
-    use WithFileUploads,
-        WithPagination,
-        WithSorting,
-        WithBulkActions,
-        Methods,
+    use Methods,
+        MultiStepForm,
         Variables,
-        MultiStepForm;
+        WithBulkActions,
+        WithFileUploads,
+        WithPagination,
+        WithSorting;
 
     public $task;
+
     public $reportDetails;
+
     public $getReport;
+
     public $results;
+
     public $taskName;
+
     public $scanDetails;
 
     public $search = '';
+
     public $filter = [
         'cvss_base' => '',
         'host' => '',
-        'Scan'  => '',
+        'Scan' => '',
         'CVSS' => '',
         'Vulnerability' => '',
         'name' => '',
@@ -92,7 +91,7 @@ class Page extends Component
             ->get()
             ->toArray();
 
-        if(empty($this->getReport[0]['id'])) {
+        if (empty($this->getReport[0]['id'])) {
             $this->getReport[0]['id'] = null;
         }
 
@@ -133,7 +132,7 @@ class Page extends Component
             ->get()
             ->toArray();
 
-        if(empty($this->getReport[0]['id'])) {
+        if (empty($this->getReport[0]['id'])) {
             $this->getReport[0]['id'] = null;
         }
 
@@ -218,20 +217,20 @@ class Page extends Component
     {
         return response()->streamDownload(function () {
             echo (clone $this->rowsCSV)
-                ->unless($this->selectAll, fn($query) => $query->whereKey($this->selected))
+                ->unless($this->selectAll, fn ($query) => $query->whereKey($this->selected))
                 ->toCsv();
         }, 'results.csv');
     }
 
     public function render()
     {
-        if($this->selectAll) {
-            $this->selected = $this->rows->pluck('id')->map(fn($id) => (string) $id);
+        if ($this->selectAll) {
+            $this->selected = $this->rows->pluck('id')->map(fn ($id) => (string) $id);
         }
 
         return view('livewire.reports.page', [
             'reportsInfo' => $this->rows,
-            'scanDetails' => $this->scanDetails()
+            'scanDetails' => $this->scanDetails(),
         ]);
     }
 }

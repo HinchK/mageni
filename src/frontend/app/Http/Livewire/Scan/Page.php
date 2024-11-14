@@ -2,73 +2,65 @@
 
 namespace App\Http\Livewire\Scan;
 
-use App\Models\{
-    Alerts as AlertsModel, 
-    CredentialsData,
-    Reports,
-    Results,
-    PortLists,
-    Schedules,
-    Targets,
-    TaskAlerts,
-    AlertMethodData,
-    TargetsLoginData,
-    Task,
-    Configs,
-    Version,
-    Credentials,
-    TasksPreferences};
-use App\Http\Livewire\Traits\{
-    Methods,
-    Variables,
-    MultiStepForm,
-    WithBulkActions,
-    WithSorting
-};
-use Livewire\{
-  Component,
-  WithFileUploads,
-  WithPagination
-};
+use App\Http\Livewire\Classes\Alerts;
+use App\Http\Livewire\Classes\Ports;
+use App\Http\Livewire\Classes\Scan;
+use App\Http\Livewire\Classes\Schedule;
+use App\Http\Livewire\Classes\SMB;
+use App\Http\Livewire\Classes\SSH;
+use App\Http\Livewire\Classes\Target;
+use App\Http\Livewire\Traits\Methods;
+use App\Http\Livewire\Traits\MultiStepForm;
+use App\Http\Livewire\Traits\Variables;
+use App\Http\Livewire\Traits\WithBulkActions;
+use App\Http\Livewire\Traits\WithSorting;
+use App\Models\AlertMethodData;
+use App\Models\Alerts as AlertsModel;
+use App\Models\Configs;
+use App\Models\Credentials;
+use App\Models\CredentialsData;
+use App\Models\PortLists;
+use App\Models\Reports;
+use App\Models\Results;
+use App\Models\Schedules;
+use App\Models\Targets;
+use App\Models\TargetsLoginData;
+use App\Models\Task;
+use App\Models\TaskAlerts;
+use App\Models\TasksPreferences;
+use App\Models\Version;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Http\Livewire\Classes\{
-    Scan,
-    Alerts,
-    Schedule,
-    SSH,
-    Ports,
-    SMB,
-    Target
-};
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use App\Models\Email;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class Page extends Component
 {
+    use AuthorizesRequests;
+    use Methods;
+    use MultiStepForm;
+    use Variables;
+    use WithBulkActions;
     use WithFileUploads;
     use WithPagination;
     use WithSorting;
-    use AuthorizesRequests;
-    use WithBulkActions;
-    use Methods;
-    use Variables;
-    use MultiStepForm;
 
     public $queryString = ['sortField', 'sortDirection'];
 
     public $listeners = [
-        'scan-created'  => '$refresh',
-        'scan-start'    => '$refresh',
-        'scan-stop'     => '$refresh',
-        'scan-resume'   => '$refresh',
-        'scan-deleted'  => '$refresh',
+        'scan-created' => '$refresh',
+        'scan-start' => '$refresh',
+        'scan-stop' => '$refresh',
+        'scan-resume' => '$refresh',
+        'scan-deleted' => '$refresh',
         'scan-modified' => '$refresh',
-        'scan-lock'     => '$refresh',
-        'scan-unlock'   => '$refresh',
-        'scan-clone'    => '$refresh',
+        'scan-lock' => '$refresh',
+        'scan-unlock' => '$refresh',
+        'scan-clone' => '$refresh',
     ];
 
     public $prompt;
@@ -78,25 +70,25 @@ class Page extends Component
         $this->editing = Task::make(['creation_time' => now()]);
         $this->resetPage();
 
-        $this->endpoint = "https://www.mageni.net/api/v1/token/plan";
+        $this->endpoint = 'https://www.mageni.net/api/v1/token/plan';
 
         $this->version = Version::select('api_key')->find(1);
         $this->license = $this->version->api_key;
-       
+
         $response = Http::withToken($this->version->api_key)->get($this->endpoint);
 
-        if(Str::contains($response, 'paid')) {
+        if (Str::contains($response, 'paid')) {
             $this->plan = 'Paid';
-            Log::info("You are on the paid plan.");
+            Log::info('You are on the paid plan.');
         } else {
             $this->plan = 'Free';
-            Log::info("You are on the free plan.");
+            Log::info('You are on the free plan.');
         }
     }
 
     public function hydrate()
     {
-        $this->resetCredentials();   
+        $this->resetCredentials();
         $this->resetValidation();
         $this->refreshComponent();
     }
@@ -133,8 +125,9 @@ class Page extends Component
         $this->deleteModalFormVisible = true;
     }
 
-    public function refreshComponent() {
-        $this->update = !$this->update;
+    public function refreshComponent()
+    {
+        $this->update = ! $this->update;
     }
 
     public function closeDeleteModalConfirmationForm()
@@ -155,7 +148,7 @@ class Page extends Component
     public function edit($taskID)
     {
         $this->authorize('edit_scans');
-        
+
         $this->resetFields();
 
         $this->getTask = Task::find($taskID);
@@ -172,25 +165,24 @@ class Page extends Component
         $this->scanDescription = $this->getTask->comment;
 
         /**
-         * Alerts 
+         * Alerts
          */
         $this->getAlert = TaskAlerts::select('alert')->where('task', $this->scanID)->first();
-        if($this->getAlert)
-        {
+        if ($this->getAlert) {
             $this->getAlertURL = AlertMethodData::select('data')
-                                ->where('alert', $this->getAlert->alert)
-                                ->where('name', 'URL')
-                                ->first();
+                ->where('alert', $this->getAlert->alert)
+                ->where('name', 'URL')
+                ->first();
 
-            $this->getAlertID = AlertsModel::select('uuid')->where('id', $this->getAlert->alert)->first();   
-            
-            $this->getAlertUUID = $this->getAlertID->uuid;   
+            $this->getAlertID = AlertsModel::select('uuid')->where('id', $this->getAlert->alert)->first();
+
+            $this->getAlertUUID = $this->getAlertID->uuid;
 
             $getURLData = parse_url($this->getAlertURL->data);
-        
-            $path = explode("/", $getURLData['path']);
 
-            $getEmailFromArray = array_diff($path, array("notifications", "email"));
+            $path = explode('/', $getURLData['path']);
+
+            $getEmailFromArray = array_diff($path, ['notifications', 'email']);
 
             $this->email = $getEmailFromArray[4];
             $this->hasNotification = 'Yes';
@@ -204,19 +196,19 @@ class Page extends Component
         $this->targetList = $this->getTargetInfo->hosts;
         $this->targetUUID = $this->getTargetInfo->uuid;
         $this->targetExclude = $this->getTargetInfo->exclude_hosts;
-        if($this->targetExclude !== ""){
+        if ($this->targetExclude !== '') {
             $this->toggleExcludeTargets = 'Yes';
         }
 
         /**
          * Performance Information
          */
-        $this->getTaskPrefInfo = TasksPreferences::where('task', '=', $this->scanID)->where('name', 'like', "%max_hosts%")->get();
+        $this->getTaskPrefInfo = TasksPreferences::where('task', '=', $this->scanID)->where('name', 'like', '%max_hosts%')->get();
 
         foreach ($this->getTaskPrefInfo as $info) {
-            if($info->value === '10') {
+            if ($info->value === '10') {
                 $this->scanSpeed = 1;
-            }elseif($info->value === '30') {
+            } elseif ($info->value === '30') {
                 $this->scanSpeed = 3;
             } else {
                 $this->scanSpeed = 2;
@@ -229,7 +221,7 @@ class Page extends Component
         $this->getPortsInfo = PortLists::find($this->getTargetInfo->port_list);
         $this->getPortsUUID = $this->getPortsInfo->uuid;
         $this->portRange = $this->getPortsInfo->comment;
-        if(!empty($this->portRange)) {
+        if (! empty($this->portRange)) {
             $this->targetPorts = 'customports';
         } else {
             $this->targetPorts = $this->getPortsInfo->uuid;
@@ -251,10 +243,9 @@ class Page extends Component
          * Credentials Information
          */
         $this->getTargetLogin = TargetsLoginData::where('target', '=', $this->getTargetInfo->id)->get()->toArray();
-        if(isset($this->getTargetLogin)) {
-            foreach($this->getTargetLogin as $logins) {
-                if(isset($logins['type']) && $logins['type'] === 'ssh')
-                {
+        if (isset($this->getTargetLogin)) {
+            foreach ($this->getTargetLogin as $logins) {
+                if (isset($logins['type']) && $logins['type'] === 'ssh') {
                     $this->hasSSHCredentials = 'Yes';
                     $this->sshType = Credentials::where('id', '=', $logins['credential'])->get();
                     foreach ($this->sshType as $type) {
@@ -264,28 +255,27 @@ class Page extends Component
                     $this->sshPort = $logins['port'];
                     $this->loginCredSSHUser = CredentialsData::where([
                         ['credential', '=', $logins['credential']],
-                        ['type', '=', 'username']
-                        ])
+                        ['type', '=', 'username'],
+                    ])
                         ->get()
                         ->toArray();
                     $this->sshLogin = $this->loginCredSSHUser[0]['value'];
                 }
 
-                if(isset($logins['type']) && $logins['type'] === 'smb')
-                {
+                if (isset($logins['type']) && $logins['type'] === 'smb') {
                     $this->hasSMBCredentials = 'Yes';
                     $this->getCredentialSMBID = Credentials::where('id', '=', $logins['credential'])->get()->toArray();
                     $this->credentialSMBID = $this->getCredentialSMBID[0]['uuid'];
                     $this->loginCredSMBUser = CredentialsData::where([
                         ['credential', '=', $logins['credential']],
-                        ['type', '=', 'username']
+                        ['type', '=', 'username'],
                     ])
                         ->get()
                         ->toArray();
                     $this->smbLogin = $this->loginCredSMBUser[0]['value'];
                 }
             }
-        } elseif(is_null($this->getTargetLogin)) {
+        } elseif (is_null($this->getTargetLogin)) {
             $this->hasSSHCredentials = 'No';
             $this->hasSMBCredentials = 'No';
             $this->getCredentialSMBID = null;
@@ -301,34 +291,34 @@ class Page extends Component
          * Schedule Information
          */
         $this->getScheduleInfo = Schedules::find($this->getSchedule);
-        if(isset($this->getScheduleInfo)) {
-            $this->hasSchedule =  'Yes';
+        if (isset($this->getScheduleInfo)) {
+            $this->hasSchedule = 'Yes';
             $this->getScheduleUUID = $this->getScheduleInfo->uuid;
             $this->getScheduleiCal = $this->getScheduleInfo->icalendar;
             $this->getScheduleFT = $this->getScheduleInfo->first_time;
             $this->timezone = $this->getScheduleInfo->timezone;
             date_default_timezone_set($this->timezone);
-            $this->scheduleStartDate = date('m/d/Y H:i',$this->getScheduleFT);
+            $this->scheduleStartDate = date('m/d/Y H:i', $this->getScheduleFT);
 
-            if(str_contains($this->getScheduleiCal, 'DAILY')) {
+            if (str_contains($this->getScheduleiCal, 'DAILY')) {
                 $this->scheduleFrequency = 'DAILY';
-            }elseif (str_contains($this->getScheduleiCal, 'MO,TU,WE,TH,FR')) {
+            } elseif (str_contains($this->getScheduleiCal, 'MO,TU,WE,TH,FR')) {
                 $this->scheduleFrequency = 'WORKWEEK';
-            }elseif (str_contains($this->getScheduleiCal, 'HOURLY')) {
+            } elseif (str_contains($this->getScheduleiCal, 'HOURLY')) {
                 $this->scheduleFrequency = 'HOURLY';
-            }elseif (str_contains($this->getScheduleiCal, 'MONTHLY')) {
+            } elseif (str_contains($this->getScheduleiCal, 'MONTHLY')) {
                 $this->scheduleFrequency = 'MONTHLY';
-            }elseif (str_contains($this->getScheduleiCal, 'WEEKLY')) {
+            } elseif (str_contains($this->getScheduleiCal, 'WEEKLY')) {
                 $this->scheduleFrequency = 'WEEKLY';
-            }else {
-                if($this->hasSchedule === 'No') {
+            } else {
+                if ($this->hasSchedule === 'No') {
                     $this->scheduleFrequency = '';
                 } else {
                     $this->scheduleFrequency = 'ONCE';
                 }
             }
-        } elseif(is_null($this->getScheduleInfo)) {
-            $this->hasSchedule =  'No';
+        } elseif (is_null($this->getScheduleInfo)) {
+            $this->hasSchedule = 'No';
             $this->scheduleFrequency = null;
             $this->scheduleStartDate = null;
             $this->timezone = null;
@@ -349,30 +339,29 @@ class Page extends Component
         /**
          * Handle Ports
          */
-        if($this->targetPorts === 'fd591a34-56fd-11e1-9f27-406186ea4fc5') {
+        if ($this->targetPorts === 'fd591a34-56fd-11e1-9f27-406186ea4fc5') {
             $this->created_port_list_id = 'fd591a34-56fd-11e1-9f27-406186ea4fc5';
-        } elseif($this->targetPorts === 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5') {
+        } elseif ($this->targetPorts === 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5') {
             $this->created_port_list_id = 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5';
-        } elseif($this->targetPorts === '730ef368-57e2-11e1-a90f-406186ea4fc5') {
+        } elseif ($this->targetPorts === '730ef368-57e2-11e1-a90f-406186ea4fc5') {
             $this->created_port_list_id = '730ef368-57e2-11e1-a90f-406186ea4fc5';
-        } elseif($this->targetPorts === 'customports')
-        {
-            $ports = new Ports();
+        } elseif ($this->targetPorts === 'customports') {
+            $ports = new Ports;
 
             $ports->create($this->portRange);
 
             $this->created_port_list_id = $ports->get_port_id;
         }
 
-        if($this->toggleNotification === 'Edit' && isset($this->email)) {
-            $alert = new Alerts();
+        if ($this->toggleNotification === 'Edit' && isset($this->email)) {
+            $alert = new Alerts;
 
             $alert->modify($this->scanName, $this->email, $this->getAlertUUID);
 
             $this->created_alert_id = $this->getAlertUUID;
 
         } elseif ($this->toggleNotification === 'Create' && isset($this->email)) {
-            $alert = new Alerts();
+            $alert = new Alerts;
 
             $alert->create($this->scanName, $this->email);
 
@@ -386,32 +375,31 @@ class Page extends Component
         /**
          * Handle SSH Credentials
          */
-        if($this->toggleSSHCredentials === 'Create')
-        {
-            $ssh = new SSH();
+        if ($this->toggleSSHCredentials === 'Create') {
+            $ssh = new SSH;
 
-            if($this->credentialType === 'up') {
+            if ($this->credentialType === 'up') {
                 $ssh->createup($this->scanDescription, $this->credentialType, $this->sshLogin, $this->sshPassword);
             } else {
                 $ssh->createuk($this->scanDescription, $this->credentialType, $this->sshLogin, $this->sshPhrase, $this->sshKey);
             }
-            
+
             $this->get_created_ssh_credential_id = $ssh->get_ssh_id;
 
         } elseif ($this->toggleSSHCredentials === 'Edit') {
 
-            $ssh = new SSH();
+            $ssh = new SSH;
 
-            if($this->credentialType === 'up') {
+            if ($this->credentialType === 'up') {
                 $ssh->modifyup($this->credentialSSHID, $this->scanDescription, $this->sshLogin, $this->sshPassword);
             } elseif ($this->credentialType === 'usk') {
                 $ssh->modifyuk($this->credentialSSHID, $this->scanDescription, $this->sshLogin, $this->sshPhrase, $this->sshKey);
             }
-            
+
             $this->get_created_ssh_credential_id = $ssh->get_ssh_id;
 
         } elseif ($this->toggleSSHCredentials === 'Remove') {
-            
+
             $this->get_created_ssh_credential_id = 0;
 
         }
@@ -419,9 +407,8 @@ class Page extends Component
         /**
          * Handle SMB Credentials
          */
-        if($this->toggleSMBCredentials === 'Create')
-        {
-            $smb = new SMB();
+        if ($this->toggleSMBCredentials === 'Create') {
+            $smb = new SMB;
 
             $smb->create($this->scanDescription, $this->smbLogin, $this->smbPassword);
 
@@ -429,7 +416,7 @@ class Page extends Component
 
         } elseif ($this->toggleSMBCredentials === 'Edit') {
 
-            $smb = new SMB();
+            $smb = new SMB;
 
             $smb->modify($this->credentialSMBID, $this->scanDescription, $this->smbLogin, $this->smbPassword);
 
@@ -438,20 +425,19 @@ class Page extends Component
         } elseif ($this->toggleSMBCredentials === 'Remove') {
 
             $this->get_created_smb_credential_id = 0;
-            
+
         }
 
         /**
          * Handle Schedule
          */
-        if($this->toggleSchedule === 'Create')
-        {
-            $schedule = new Schedule();
+        if ($this->toggleSchedule === 'Create') {
+            $schedule = new Schedule;
 
             $schedule->create(
-                $this->scanDescription, 
-                $this->timezone, 
-                $this->scheduleStartDate, 
+                $this->scanDescription,
+                $this->timezone,
+                $this->scheduleStartDate,
                 $this->scheduleFrequency
             );
 
@@ -459,20 +445,20 @@ class Page extends Component
 
         } elseif ($this->toggleSchedule === 'Modify') {
 
-            $schedule = new Schedule();
+            $schedule = new Schedule;
 
             $schedule->modify(
-                $this->getScheduleUUID, 
-                $this->scanDescription, 
-                $this->timezone, 
-                $this->scheduleStartDate, 
+                $this->getScheduleUUID,
+                $this->scanDescription,
+                $this->timezone,
+                $this->scheduleStartDate,
                 $this->scheduleFrequency
             );
 
             $this->get_created_schedule_id = $schedule->get_schedule_id;
 
         } elseif ($this->toggleSchedule === 'Remove') {
-            
+
             $this->get_created_schedule_id = 0;
 
         }
@@ -480,12 +466,12 @@ class Page extends Component
         /**
          * Modify Target
          */
-        $target = new Target();
+        $target = new Target;
 
-        if($this->toggleExcludeTargets === 'No'){
+        if ($this->toggleExcludeTargets === 'No') {
 
             $this->targetExclude = '';
-        
+
         }
 
         $target->modify(
@@ -500,13 +486,13 @@ class Page extends Component
             $this->sshPort,
             $this->get_created_smb_credential_id
         );
-    
+
         $this->created_target_id = $target->get_target_id;
 
         /**
          * Modify Scan
          */
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->modify(
             $this->scanUUID,
@@ -521,31 +507,31 @@ class Page extends Component
             $this->get_created_schedule_id,
             $this->created_alert_id
         );
-        
+
         $this->resetFields();
         $this->showEditModal = false;
         $this->currentPage = 1;
         $this->stopPolling = 'No';
 
-        if($scan->get_modify_result == 0) {
+        if ($scan->get_modify_result == 0) {
             $this->emit('scan-modified', [
-                'title'     => 'Scan Modified',
-                'icon'      => 'success',
-                'timer'     => $this->alertTimer,
+                'title' => 'Scan Modified',
+                'icon' => 'success',
+                'timer' => $this->alertTimer,
                 'iconColor' => 'green',
             ]);
-        } elseif($scan->get_modify_result == 1) {
+        } elseif ($scan->get_modify_result == 1) {
             $this->emit('scan-modified', [
-                'title'     => 'Scan Modification',
-                'icon'      => 'error',
-                'timer'     => $this->alertTimer,
+                'title' => 'Scan Modification',
+                'icon' => 'error',
+                'timer' => $this->alertTimer,
                 'iconColor' => 'red',
             ]);
-        } elseif($scan->get_modify_result == 7) {
+        } elseif ($scan->get_modify_result == 7) {
             $this->emit('error-modifying-scan', [
-                'title'     => 'Error 404',
-                'text'      => 'We are aware of this error and it will be fixed. Meanwhile, as a workaround, please lock the scan and create a new one.',
-                'icon'      => 'error',
+                'title' => 'Error 404',
+                'text' => 'We are aware of this error and it will be fixed. Meanwhile, as a workaround, please lock the scan and create a new one.',
+                'icon' => 'error',
                 'iconColor' => 'red',
             ]);
         }
@@ -554,9 +540,9 @@ class Page extends Component
     public function closeEditModal()
     {
         $this->resetFields();
-        
+
         $this->showEditModal = false;
-        
+
         $this->stopPolling = 'No';
     }
 
@@ -567,24 +553,22 @@ class Page extends Component
         /**
          * Create Custom Ports
          */
-        if($this->targetPorts === 'fd591a34-56fd-11e1-9f27-406186ea4fc5') {
+        if ($this->targetPorts === 'fd591a34-56fd-11e1-9f27-406186ea4fc5') {
             $this->created_port_list_id = 'fd591a34-56fd-11e1-9f27-406186ea4fc5';
-        } elseif($this->targetPorts === 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5') {
+        } elseif ($this->targetPorts === 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5') {
             $this->created_port_list_id = 'ab33f6b0-57f8-11e1-96f5-406186ea4fc5';
-        } elseif($this->targetPorts === '730ef368-57e2-11e1-a90f-406186ea4fc5') {
+        } elseif ($this->targetPorts === '730ef368-57e2-11e1-a90f-406186ea4fc5') {
             $this->created_port_list_id = '730ef368-57e2-11e1-a90f-406186ea4fc5';
-        } elseif($this->targetPorts === 'customports')
-        {
-            $ports = new Ports();
+        } elseif ($this->targetPorts === 'customports') {
+            $ports = new Ports;
 
             $ports->create($this->portRange);
 
             $this->created_port_list_id = $ports->get_port_id;
         }
 
-        if($this->emailNotification === 'Yes')
-        {
-            $alert = new Alerts();
+        if ($this->emailNotification === 'Yes') {
+            $alert = new Alerts;
 
             $alert->create($this->scanName, $this->emailTo);
 
@@ -594,11 +578,10 @@ class Page extends Component
         /**
          * Create SSH Credentials
          */
-        if($this->toggleSSHCredentials === 'Yes')
-        {
-            $ssh = new SSH();
+        if ($this->toggleSSHCredentials === 'Yes') {
+            $ssh = new SSH;
 
-            if($this->credentialType === 'up') {
+            if ($this->credentialType === 'up') {
                 $ssh->createup($this->scanDescription, $this->credentialType, $this->sshLogin, $this->sshPassword);
 
                 $this->get_created_ssh_credential_id = $ssh->get_ssh_id;
@@ -612,18 +595,16 @@ class Page extends Component
         /**
          * Create SMB Credentials
          */
-        if($this->toggleSMBCredentials === 'Yes')
-        {
-            $smb = new SMB();
+        if ($this->toggleSMBCredentials === 'Yes') {
+            $smb = new SMB;
 
             $smb->create($this->scanDescription, $this->smbLogin, $this->smbPassword);
 
             $this->get_created_smb_credential_id = $smb->get_smb_id;
         }
 
-        if($this->toggleSchedule === 'Yes')
-        {
-            $schedule = new Schedule();
+        if ($this->toggleSchedule === 'Yes') {
+            $schedule = new Schedule;
 
             $schedule->create($this->scanDescription, $this->timezone, $this->scheduleStartDate, $this->scheduleFrequency, $this->scheduleRecurrence);
 
@@ -633,7 +614,7 @@ class Page extends Component
         /**
          * Create Target
          */
-        $target = new Target();
+        $target = new Target;
 
         $target->create(
             $this->scanDescription,
@@ -652,7 +633,7 @@ class Page extends Component
         /**
          * Create Scan
          */
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->create(
             $this->scanName,
@@ -672,9 +653,9 @@ class Page extends Component
         $this->resetFields();
         $this->stopPolling = 'No';
 
-        if($scan->get_create_result == 0) {
+        if ($scan->get_create_result == 0) {
             $this->emit('confetti');
-        } elseif($scan->get_create_result == 1) {
+        } elseif ($scan->get_create_result == 1) {
             $this->notify('Error creating scan', 'Error', 'error');
         }
     }
@@ -683,11 +664,11 @@ class Page extends Component
     {
         $this->authorize('start_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->start($taskID);
 
-        if($scan->get_start_result == 0) {
+        if ($scan->get_start_result == 0) {
             $this->notify('Scan started successfully', 'Success', 'success');
         } elseif ($scan->get_start_result == 2) {
             $this->notify('Knowledge Base is refreshing. Please wait.', 'Information', 'info');
@@ -702,7 +683,7 @@ class Page extends Component
     {
         $this->authorize('stop_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->stop($taskID);
 
@@ -714,13 +695,13 @@ class Page extends Component
     {
         $this->authorize('lock_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->lock($taskID);
 
-        if($scan->get_lock_result == 0) {
+        if ($scan->get_lock_result == 0) {
             $this->notify('Scan Locked', 'Success', 'success');
-        } elseif($scan->get_lock_result == 1) {
+        } elseif ($scan->get_lock_result == 1) {
             $this->notify('Scan Lock', 'Error', 'error');
         }
     }
@@ -729,13 +710,13 @@ class Page extends Component
     {
         $this->authorize('unlock_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->unlock($taskID);
 
-        if($scan->get_unlock_result == 0) {
+        if ($scan->get_unlock_result == 0) {
             $this->notify('Scan Unlocked', 'Success', 'success');
-        } elseif($scan->get_unlock_result == 1) {
+        } elseif ($scan->get_unlock_result == 1) {
             $this->notify('Scan Unlock', 'Error', 'error');
         }
     }
@@ -744,13 +725,13 @@ class Page extends Component
     {
         $this->authorize('clone_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->clone($taskID);
 
-        if($scan->get_clone_result == 0) {
+        if ($scan->get_clone_result == 0) {
             $this->notify('Scan Cloned', 'Success', 'success');
-        } elseif($scan->get_clone_result == 1) {
+        } elseif ($scan->get_clone_result == 1) {
             $this->notify('Error cloning scan', 'Error', 'error');
         }
     }
@@ -759,13 +740,13 @@ class Page extends Component
     {
         $this->authorize('restart_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->resume($taskID);
 
         $this->dispatchBrowserEvent('scan-resume-confetti');
 
-         if($scan->get_resume_result == 0) {
+        if ($scan->get_resume_result == 0) {
             $this->notify('Scan restarted successfully', 'Success', 'success');
         } elseif ($scan->get_resume_result == 2) {
             $this->notify('Knowledge Base is refreshing. Please wait a few minutes.', 'Information', 'info');
@@ -780,18 +761,18 @@ class Page extends Component
     {
         $this->authorize('delete_scans');
 
-        $scan = new Scan();
+        $scan = new Scan;
 
         $scan->delete($taskID);
 
         $this->deleteModalFormVisible = false;
-        
-        if($scan->get_delete_result == 0) {
+
+        if ($scan->get_delete_result == 0) {
             $this->notify('Scan Deleted', 'Success', 'success');
         } else {
             $this->notify('Error deleting scan', 'Error', 'error');
         }
-        
+
         return $scan->get_delete_result;
     }
 
@@ -809,7 +790,7 @@ class Page extends Component
     {
         return response()->streamDownload(function () {
             echo (clone $this->rowsQuery)
-                ->unless($this->selectAll, fn($query) => $query->whereKey($this->selected))
+                ->unless($this->selectAll, fn ($query) => $query->whereKey($this->selected))
                 ->toCsv();
         }, 'tasks.csv');
     }
@@ -817,7 +798,7 @@ class Page extends Component
     public function deleteSelected()
     {
         (clone $this->rowsQuery)
-            ->unless($this->selectAll, fn($query) => $query->whereKey($this->selected))
+            ->unless($this->selectAll, fn ($query) => $query->whereKey($this->selected))
             ->delete();
 
         $this->unSelectAll();
@@ -832,7 +813,7 @@ class Page extends Component
             ->where('name', 'like', '%'.$this->search.'%')
             ->orWhere('comment', 'like', '%'.$this->search.'%');
 
-       return $this->applySorting($query);
+        return $this->applySorting($query);
     }
 
     public function getRowsProperty()
@@ -848,28 +829,28 @@ class Page extends Component
     public function tasksAll(): int
     {
         return $this->scansAll = Task::distinct()
-           ->count();
+            ->count();
     }
 
     public function tasksNew(): int
     {
         return $this->scansNew = Task::distinct()
-           ->where('run_status', '=',  2)
-           ->count();
+            ->where('run_status', '=', 2)
+            ->count();
     }
 
     public function tasksCompleted(): int
     {
         return $this->scansCompleted = Task::distinct()
-           ->where('run_status', '=',  1)
-           ->count();
+            ->where('run_status', '=', 1)
+            ->count();
     }
 
     public function tasksRunning(): int
     {
         return $this->scansRunning = Task::distinct()
-           ->where('run_status', '=',  4)
-           ->count();
+            ->where('run_status', '=', 4)
+            ->count();
     }
 
     public function exportLastReport($task)
@@ -877,20 +858,20 @@ class Page extends Component
         $uuid = Str::uuid();
         $fileName = $uuid.'.csv';
 
-        $headers = array(
-            "Content-type"        => "text/csv",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
-        );
+        $headers = [
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=$fileName",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
 
-        $columns = array(
-            'KB', 
-            'CVSS', 
-            'Severity', 
-            'Asset', 
-            'Port', 
+        $columns = [
+            'KB',
+            'CVSS',
+            'Severity',
+            'Asset',
+            'Port',
             'Vulnerability',
             'Summary',
             'Insight',
@@ -905,8 +886,8 @@ class Page extends Component
             'Scan',
             'Date',
             'CVE',
-            'References'
-        );
+            'References',
+        ];
 
         $this->getReport = Reports::where('task', '=', $task)
             ->select('id')
@@ -915,7 +896,7 @@ class Page extends Component
             ->get()
             ->toArray();
 
-        if(empty($this->getReport[0]['id'])) {
+        if (empty($this->getReport[0]['id'])) {
             $this->getReport[0]['id'] = null;
         }
 
@@ -955,38 +936,38 @@ class Page extends Component
             ->orderBy('nvts.cvss_base', $this->sortDirection)
             ->get();
 
-        $callback = function() use($query, $columns) {
+        $callback = function () use ($query, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($query as $task) {
-                $row['KB']  = $task->KB;
-                $row['CVSS']    = $task->CVSS;
-                $row['Severity']    = $task->Severity;
-                $row['Asset']    = $task->Asset;
-                $row['Port']  = $task->Port;
-                $row['Vulnerability']  = $task->Vulnerability;
-                $row['Summary']  = $task->Summary;
-                $row['Insight']  = $task->Insight;
-                $row['Impact']  = $task->Impact;
-                $row['Affected']  = $task->Affected;
-                $row['Evidence']  = $task->Evidence;
-                $row['Solution']  = $task->Solution;
-                $row['Solution_Type']  = $task->Solution_Type;
-                $row['Detection']  = $task->Detection;
-                $row['CVSSv2_Vector']  = $task->CVSSv2_Vector;
-                $row['Category']  = $task->Category;
-                $row['Scan']  = $task->Scan;
-                $row['Date']  = $task->Date;
-                $row['CVE']  = $task->CVE;
-                $row['References']  = $task->References;
+                $row['KB'] = $task->KB;
+                $row['CVSS'] = $task->CVSS;
+                $row['Severity'] = $task->Severity;
+                $row['Asset'] = $task->Asset;
+                $row['Port'] = $task->Port;
+                $row['Vulnerability'] = $task->Vulnerability;
+                $row['Summary'] = $task->Summary;
+                $row['Insight'] = $task->Insight;
+                $row['Impact'] = $task->Impact;
+                $row['Affected'] = $task->Affected;
+                $row['Evidence'] = $task->Evidence;
+                $row['Solution'] = $task->Solution;
+                $row['Solution_Type'] = $task->Solution_Type;
+                $row['Detection'] = $task->Detection;
+                $row['CVSSv2_Vector'] = $task->CVSSv2_Vector;
+                $row['Category'] = $task->Category;
+                $row['Scan'] = $task->Scan;
+                $row['Date'] = $task->Date;
+                $row['CVE'] = $task->CVE;
+                $row['References'] = $task->References;
 
-                fputcsv($file, array(
-                    $row['KB'], 
-                    $row['CVSS'], 
-                    $row['Severity'], 
-                    $row['Asset'], 
-                    $row['Port'], 
+                fputcsv($file, [
+                    $row['KB'],
+                    $row['CVSS'],
+                    $row['Severity'],
+                    $row['Asset'],
+                    $row['Port'],
                     $row['Vulnerability'],
                     $row['Summary'],
                     $row['Insight'],
@@ -1002,7 +983,7 @@ class Page extends Component
                     $row['Date'],
                     $row['CVE'],
                     $row['References'],
-                ));
+                ]);
             }
 
             fclose($file);
@@ -1016,17 +997,17 @@ class Page extends Component
     {
         $this->authorize('show_scans');
 
-        if($this->selectAll) {
-            $this->selected = $this->rows->pluck('id')->map(fn($id) => (string) $id);
+        if ($this->selectAll) {
+            $this->selected = $this->rows->pluck('id')->map(fn ($id) => (string) $id);
         }
 
         return view('livewire.scan.page', [
-            'scans'             => $this->rows,
-            'configs'           => $this->getConfigs(),
-            'scansAll'          => $this->tasksAll(),
-            'scansNew'          => $this->tasksNew(),
-            'scansCompleted'    => $this->tasksCompleted(),
-            'scansRunning'      => $this->tasksRunning(),
+            'scans' => $this->rows,
+            'configs' => $this->getConfigs(),
+            'scansAll' => $this->tasksAll(),
+            'scansNew' => $this->tasksNew(),
+            'scansCompleted' => $this->tasksCompleted(),
+            'scansRunning' => $this->tasksRunning(),
         ]);
     }
 }

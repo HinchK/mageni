@@ -7,32 +7,29 @@ use App\Http\Livewire\Traits\MultiStepForm;
 use App\Http\Livewire\Traits\Variables;
 use App\Http\Livewire\Traits\WithBulkActions;
 use App\Http\Livewire\Traits\WithSorting;
-use App\Models\Reports;
-use App\Models\Results;
-use Illuminate\Support\Facades\DB;
-use Livewire\Component;
-
 use App\Models\KnowledgeBase;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class Page extends Component
 {
-    use WithFileUploads,
-        WithPagination,
-        WithSorting,
-        WithBulkActions,
-        Methods,
+    use Methods,
+        MultiStepForm,
         Variables,
-        MultiStepForm;
+        WithBulkActions,
+        WithFileUploads,
+        WithPagination,
+        WithSorting;
 
     public $results;
+
     public $creationTime;
 
     public $columnFilter = [
         'status' => '',
         'owner' => '',
-        'name'  => '',
+        'name' => '',
         'run_status' => '',
     ];
 
@@ -110,7 +107,7 @@ class Page extends Component
     public function render()
     {
         return view('livewire.kb.page', [
-            'kb' => $this->rows
+            'kb' => $this->rows,
         ]);
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Component;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
+use Livewire\Component;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,7 +43,9 @@ class AppServiceProvider extends ServiceProvider
         Builder::macro('toCsv', function () {
             $results = $this->get();
 
-            if ($results->count() < 1) return;
+            if ($results->count() < 1) {
+                return;
+            }
 
             $titles = implode(',', array_keys((array) $results->first()->getAttributes()));
 

@@ -11,21 +11,22 @@ use Illuminate\Support\Str;
 class Alerts
 {
     private $request;
+
     public $get_alert_id;
 
     public function create($scanName, $emailTo)
     {
         $name = Str::uuid();
 
-        $this->request  = "<create_alert>";
+        $this->request = '<create_alert>';
         $this->request .= "<name>$name</name>";
         $this->request .= "<comment>$name</comment>";
-        $this->request .= "<condition>Always</condition>";
-        $this->request .= "<event>Task run status changed<data>Done<name>status</name></data></event>";
+        $this->request .= '<condition>Always</condition>';
+        $this->request .= '<event>Task run status changed<data>Done<name>status</name></data></event>';
         $this->request .= "<method>HTTP GET<data>https://127.0.0.1/notifications/email/$scanName/$emailTo<name>URL</name></data></method>";
-        $this->request .= "</create_alert>";
+        $this->request .= '</create_alert>';
 
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Alert Creation');
 
@@ -36,16 +37,16 @@ class Alerts
     {
         $name = Str::uuid();
 
-        $this->request  = "<modify_alert alert_id='$id'>";
+        $this->request = "<modify_alert alert_id='$id'>";
         $this->request .= "<name>$name</name>";
         $this->request .= "<comment>$name</comment>";
-        $this->request .= "<condition>Always</condition>";
-        $this->request .= "<event>Task run status changed<data>Done<name>status</name></data></event>";
+        $this->request .= '<condition>Always</condition>';
+        $this->request .= '<event>Task run status changed<data>Done<name>status</name></data></event>';
         $this->request .= "<method>HTTP GET<data>https://127.0.0.1/notifications/email/$scanName/$emailTo<name>URL</name></data></method>";
-        $this->request .= "</modify_alert>";
+        $this->request .= '</modify_alert>';
 
-        $socket = new Socket();
-        
+        $socket = new Socket;
+
         Log::info('Processing Alert Modification');
 
         // dd($this->request);

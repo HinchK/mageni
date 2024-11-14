@@ -10,6 +10,7 @@ class Configs extends Model
     use HasFactory;
 
     const CREATED_AT = 'creation_time';
+
     const UPDATED_AT = 'modification_time';
 
     protected $table = 'configs';
@@ -20,7 +21,7 @@ class Configs extends Model
     {
         return [
             'creation_time',
-            'modification_time'
+            'modification_time',
         ];
     }
 }

@@ -11,22 +11,23 @@ class Task extends Model
     use HasFactory;
 
     const CREATED_AT = 'creation_time';
+
     const UPDATED_AT = 'modification_time';
 
     const STATUSES = [
-        '0'     =>  'Delete Requested',
-        '1'     =>  'Completed',
-        '2'     =>  'New',
-        '3'     =>  'Requested',
-        '4'     =>  'Running',
-        '10'    =>  'Stop Requested',
-        '11'    =>  'Stop Waiting',
-        '12'    =>  'Stoppped',
-        '13'    =>  'Interrupted',
-        '14'    =>  'Ultimate Delete Requested',
-        '15'    =>  'Stop Requested Giveup',
-        '16'    =>  'Delete Waiting',
-        '17'    =>  'Ultimate Delete Waiting'
+        '0' => 'Delete Requested',
+        '1' => 'Completed',
+        '2' => 'New',
+        '3' => 'Requested',
+        '4' => 'Running',
+        '10' => 'Stop Requested',
+        '11' => 'Stop Waiting',
+        '12' => 'Stoppped',
+        '13' => 'Interrupted',
+        '14' => 'Ultimate Delete Requested',
+        '15' => 'Stop Requested Giveup',
+        '16' => 'Delete Waiting',
+        '17' => 'Ultimate Delete Waiting',
     ];
 
     protected $table = 'tasks';
@@ -40,19 +41,18 @@ class Task extends Model
             'modification_time',
             'schedule_next_time',
             'start_time',
-            'end_time'
+            'end_time',
         ];
     }
 
     protected $fillable = ['creation_time'];
 
-
     public function getStatusColorAttribute()
     {
         return [
-                'success' => 'green',
-                'failed' => 'red',
-            ][$this->status] ?? 'cool-gray';
+            'success' => 'green',
+            'failed' => 'red',
+        ][$this->status] ?? 'cool-gray';
     }
 
     public function getDateForHumansAttribute()

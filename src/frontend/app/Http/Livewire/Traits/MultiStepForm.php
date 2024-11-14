@@ -10,8 +10,7 @@ trait MultiStepForm
 
     public function firstStepSubmit(): int
     {
-        if($this->showEditModal)
-        {
+        if ($this->showEditModal) {
             $this->validate([
                 'scanName' => 'required|string|min:4|max:30',
                 'scanDescription' => 'required|string|min:4|max:120',
@@ -29,30 +28,29 @@ trait MultiStepForm
 
     public function secondStepSubmit(): int
     {
-        if($this->toggleExcludeTargets === 'Yes')
-        {
+        if ($this->toggleExcludeTargets === 'Yes') {
             $this->validate([
-                'targetList'    => 'required|string|min:4|max:1024',
-                'scanSpeed'     => 'required|digits_between:1,2',
+                'targetList' => 'required|string|min:4|max:1024',
+                'scanSpeed' => 'required|digits_between:1,2',
                 'targetExclude' => 'required|string|different:targetList',
-                'targetAlive'   => 'required|digits_between:1,2',
+                'targetAlive' => 'required|digits_between:1,2',
             ]);
-        }elseif($this->targetPorts === 'customports') {
+        } elseif ($this->targetPorts === 'customports') {
             $this->validate([
-                'targetList'    => 'required|string|min:4|max:1024',
-                'scanSpeed'     => 'required|digits_between:1,2',
-                'portRange'     => 'required',
-                'targetAlive'   => 'required|digits_between:1,2',
+                'targetList' => 'required|string|min:4|max:1024',
+                'scanSpeed' => 'required|digits_between:1,2',
+                'portRange' => 'required',
+                'targetAlive' => 'required|digits_between:1,2',
             ]);
-        }else {
+        } else {
             $this->validate([
-                'targetList'    => 'required|string|min:4|max:1024',
-                'scanSpeed'     => 'required|digits_between:1,2',
-                'targetAlive'   => 'required|digits_between:1,2',
+                'targetList' => 'required|string|min:4|max:1024',
+                'scanSpeed' => 'required|digits_between:1,2',
+                'targetAlive' => 'required|digits_between:1,2',
             ]);
         }
 
-        if($this->targetAlive === '2') {
+        if ($this->targetAlive === '2') {
             $this->alivetest = 'ICMP Ping';
         } elseif ($this->targetAlive === '4') {
             $this->alivetest = 'ARP Ping';
@@ -91,49 +89,44 @@ trait MultiStepForm
 
     public function thirdStepSubmit(): int
     {
-        if($this->toggleSSHCredentials === 'Yes' ||
-            $this->toggleSSHCredentials === 'Create' || 
-            $this->toggleSSHCredentials === 'Modify' || 
-            $this->toggleSSHCredentials === 'Edit')
-        {
-            if($this->credentialType === 'up')
-            {
+        if ($this->toggleSSHCredentials === 'Yes' ||
+            $this->toggleSSHCredentials === 'Create' ||
+            $this->toggleSSHCredentials === 'Modify' ||
+            $this->toggleSSHCredentials === 'Edit') {
+            if ($this->credentialType === 'up') {
                 $this->validate([
-                    'sshLogin'      => 'required|string|min:4|max:128',
-                    'sshPassword'   => 'required|string|min:4|max:128',
-                    'sshPort' => 'required|integer|min:1|max:65535',
-                ]);
-            } 
-            
-            if($this->credentialType === 'usk') 
-            {
-                $this->validate([
-                    'sshLogin'      => 'required|string|min:4|max:128',
-                    'sshPhrase'     => 'required|string|min:4|max:128',
-                    'sshKey'        => ['required', new ValidateSSHKey()],
+                    'sshLogin' => 'required|string|min:4|max:128',
+                    'sshPassword' => 'required|string|min:4|max:128',
                     'sshPort' => 'required|integer|min:1|max:65535',
                 ]);
             }
-        } 
-        
-        if($this->toggleSMBCredentials === 'Yes' || 
-            $this->toggleSMBCredentials === 'Create' || 
-            $this->toggleSMBCredentials === 'Modify' || 
-            $this->toggleSMBCredentials === 'Edit') 
-        {
+
+            if ($this->credentialType === 'usk') {
+                $this->validate([
+                    'sshLogin' => 'required|string|min:4|max:128',
+                    'sshPhrase' => 'required|string|min:4|max:128',
+                    'sshKey' => ['required', new ValidateSSHKey],
+                    'sshPort' => 'required|integer|min:1|max:65535',
+                ]);
+            }
+        }
+
+        if ($this->toggleSMBCredentials === 'Yes' ||
+            $this->toggleSMBCredentials === 'Create' ||
+            $this->toggleSMBCredentials === 'Modify' ||
+            $this->toggleSMBCredentials === 'Edit') {
             $this->validate([
                 'smbLogin' => 'required|string|min:4|max:128',
                 'smbPassword' => 'required|string|min:4|max:128',
             ]);
-        } 
+        }
 
         return $this->currentPage = 4;
     }
 
     public function fourthStepSubmit(): int
     {
-        if($this->toggleSchedule === 'Create' || $this->toggleSchedule === 'Modify' || $this->toggleSchedule === 'Yes')
-        {
+        if ($this->toggleSchedule === 'Create' || $this->toggleSchedule === 'Modify' || $this->toggleSchedule === 'Yes') {
             $this->validate([
                 'scheduleFrequency' => 'required|string|max:32',
                 'scheduleStartDate' => 'required|date_format:m/d/Y H:i',
@@ -145,10 +138,9 @@ trait MultiStepForm
 
     public function fifthStepSubmit(): int
     {
-        if($this->toggleNotification === 'Create' || $this->toggleNotification === 'Edit')
-        {
+        if ($this->toggleNotification === 'Create' || $this->toggleNotification === 'Edit') {
             $this->validate([
-                'email' => 'required|email|max:64'
+                'email' => 'required|email|max:64',
             ]);
         }
 

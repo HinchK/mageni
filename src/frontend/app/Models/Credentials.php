@@ -10,6 +10,7 @@ class Credentials extends Model
     use HasFactory;
 
     const CREATED_AT = 'creation_time';
+
     const UPDATED_AT = 'modification_time';
 
     protected $table = 'credentials';
@@ -20,7 +21,7 @@ class Credentials extends Model
     {
         return [
             'creation_time',
-            'modification_time'
+            'modification_time',
         ];
     }
 }

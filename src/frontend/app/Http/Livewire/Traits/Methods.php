@@ -5,9 +5,12 @@ namespace App\Http\Livewire\Traits;
 trait Methods
 {
     public $showEditModal = false;
+
     public $modalFormVisible = false;
+
     public string $stopPolling = 'No';
-    public $update; 
+
+    public $update;
 
     public function resetFields()
     {

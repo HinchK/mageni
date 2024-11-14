@@ -11,13 +11,11 @@ use Illuminate\Support\Str;
 class SMB
 {
     protected $request;
+
     public $get_smb_id;
 
     /**
-     * @param $name
-     * @param $description
-     * @param $login
-     * @param $password
+     * @param  $name
      */
     public function create($description, $login, $password)
     {
@@ -26,18 +24,18 @@ class SMB
         /**
          * Create Port List
          */
-        $this->request = "<create_credential>";
+        $this->request = '<create_credential>';
         $this->request .= "<name>$name</name>";
         $this->request .= "<comment>$description</comment>";
         $this->request .= "<login>$login</login>";
         $this->request .= "<password>$password</password>";
-        $this->request .= "<type>up</type>";
-        $this->request .= "</create_credential>";
+        $this->request .= '<type>up</type>';
+        $this->request .= '</create_credential>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing SMB Credential Creation');
 
@@ -45,10 +43,7 @@ class SMB
     }
 
     /**
-     * @param $name
-     * @param $description
-     * @param $login
-     * @param $password
+     * @param  $name
      */
     public function modify($id, $description, $login, $password)
     {
@@ -62,12 +57,12 @@ class SMB
         $this->request .= "<comment>$description</comment>";
         $this->request .= "<login>$login</login>";
         $this->request .= "<password>$password</password>";
-        $this->request .= "</modify_credential>";
+        $this->request .= '</modify_credential>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing SMB Credential Modification');
 
