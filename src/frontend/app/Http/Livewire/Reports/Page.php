@@ -200,7 +200,7 @@ class Page extends Component
      *
      * @return void
      */
-    public function exportReport()
+    public function exportReport(): void
     {
         return response()->streamDownload(function () {
             echo (clone $this->rowsCSV)
@@ -213,7 +213,7 @@ class Page extends Component
      *
      * @return void
      */
-    public function exportSelected()
+    public function exportSelected(): void
     {
         return response()->streamDownload(function () {
             echo (clone $this->rowsCSV)

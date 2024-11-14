@@ -112,7 +112,7 @@ class Scan
      *
      * @return bool
      */
-    public function start($id)
+    public function start($id): bool
     {
         $socket = new Socket;
 
@@ -156,7 +156,7 @@ class Scan
      *
      * @return bool
      */
-    public function delete($id)
+    public function delete($id): bool
     {
         $socket = new Socket;
 
@@ -172,7 +172,7 @@ class Scan
      *
      * @return bool
      */
-    public function lock($id)
+    public function lock($id): bool
     {
         $socket = new Socket;
 
@@ -188,7 +188,7 @@ class Scan
      *
      * @return bool
      */
-    public function unlock($id)
+    public function unlock($id): bool
     {
         $socket = new Socket;
 
@@ -204,7 +204,7 @@ class Scan
      *
      * @return bool
      */
-    public function clone($id)
+    public function clone($id): bool
     {
         $socket = new Socket;
 
