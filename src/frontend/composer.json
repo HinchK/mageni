@@ -10,7 +10,6 @@
     "require": {
         "php": "^8.0",
         "doctrine/dbal": "^3.3",
-        "fruitcake/laravel-cors": "^2.0",
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^9.19",
         "laravel/jetstream": "^2.3",
