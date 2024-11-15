@@ -12,17 +12,15 @@ use Illuminate\Support\Str;
 class Schedule
 {
     protected $create_schedule;
+
     public $get_schedule_id;
+
     public $icalendar;
 
     /**
      * Create Schedule
      *
-     * @param $name
-     * @param $description
-     * @param $timezone
-     * @param $startdate
-     * @param $frequency
+     * @param  $name
      * @return mixed
      */
     public function create($description, $timezone, $startdate, $frequency, $recurrence = null)
@@ -34,21 +32,21 @@ class Schedule
          * Carbon Now DTSTAMP
          */
         $getCarbon = Carbon::now();
-        $obj = explode(" ", $getCarbon);
+        $obj = explode(' ', $getCarbon);
 
-        $carb1 = date("Ymd", strtotime($obj[0]));
-        $carb2 = date("Hi", strtotime($obj[1]));
-        $carbonDate = $carb1."T".$carb2."00Z";
+        $carb1 = date('Ymd', strtotime($obj[0]));
+        $carb2 = date('Hi', strtotime($obj[1]));
+        $carbonDate = $carb1.'T'.$carb2.'00Z';
 
         /**
          * Schedule Start Time
          */
         $schStart = $startdate;
-        $obj = explode(" ", $schStart);
+        $obj = explode(' ', $schStart);
 
-        $sche = date("Ymd", strtotime($obj[0]));
-        $hour = date("Hi", strtotime($obj[1]));
-        $startTime = $sche."T".$hour."00Z";
+        $sche = date('Ymd', strtotime($obj[0]));
+        $hour = date('Hi', strtotime($obj[1]));
+        $startTime = $sche.'T'.$hour.'00Z';
 
         /**
          * iCalendar
@@ -59,11 +57,11 @@ class Schedule
         $icalendar .= "BEGIN:VEVENT\n";
         $icalendar .= "DTSTART:$startTime\n";
         $icalendar .= "DURATION:PT0S\n";
-        if($frequency === 'ONCE') {
+        if ($frequency === 'ONCE') {
             $icalendar .= '';
-        } elseif($frequency === 'WORKWEEK') {
+        } elseif ($frequency === 'WORKWEEK') {
             $icalendar .= "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR\n";
-        } elseif($frequency) {
+        } elseif ($frequency) {
             $icalendar .= "RRULE:FREQ=$frequency\n";
         }
         $icalendar .= "UID:$uuid\n";
@@ -74,17 +72,17 @@ class Schedule
         /**
          * Request
          */
-        $this->create_schedule = "<create_schedule>";
+        $this->create_schedule = '<create_schedule>';
         $this->create_schedule .= "<name>$name</name>";
         $this->create_schedule .= "<comment>$description</comment>";
         $this->create_schedule .= "<icalendar>$icalendar</icalendar>";
         $this->create_schedule .= "<timezone>$timezone</timezone>";
-        $this->create_schedule .= "</create_schedule>";
+        $this->create_schedule .= '</create_schedule>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Schedule Creation');
 
@@ -94,11 +92,7 @@ class Schedule
     /**
      * Modify Schedule
      *
-     * @param $name
-     * @param $description
-     * @param $timezone
-     * @param $startdate
-     * @param $frequency
+     * @param  $name
      * @return mixed
      */
     public function modify($id, $description, $timezone, $startdate, $frequency)
@@ -110,21 +104,21 @@ class Schedule
          * Carbon Now DTSTAMP
          */
         $getCarbon = Carbon::now();
-        $obj = explode(" ", $getCarbon);
+        $obj = explode(' ', $getCarbon);
 
-        $carb1 = date("Ymd", strtotime($obj[0]));
-        $carb2 = date("Hi", strtotime($obj[1]));
-        $carbonDate = $carb1."T".$carb2."00Z";
+        $carb1 = date('Ymd', strtotime($obj[0]));
+        $carb2 = date('Hi', strtotime($obj[1]));
+        $carbonDate = $carb1.'T'.$carb2.'00Z';
 
         /**
          * Schedule Start Time
          */
         $schStart = $startdate;
-        $obj = explode(" ", $schStart);
+        $obj = explode(' ', $schStart);
 
-        $sche = date("Ymd", strtotime($obj[0]));
-        $hour = date("Hi", strtotime($obj[1]));
-        $startTime = $sche."T".$hour."00Z";
+        $sche = date('Ymd', strtotime($obj[0]));
+        $hour = date('Hi', strtotime($obj[1]));
+        $startTime = $sche.'T'.$hour.'00Z';
 
         /**
          * iCalendar
@@ -135,11 +129,11 @@ class Schedule
         $icalendar .= "BEGIN:VEVENT\n";
         $icalendar .= "DTSTART:$startTime\n";
         $icalendar .= "DURATION:PT0S\n";
-        if($frequency === 'ONCE') {
+        if ($frequency === 'ONCE') {
             $icalendar .= '';
-        } elseif($frequency === 'WORKWEEK') {
+        } elseif ($frequency === 'WORKWEEK') {
             $icalendar .= "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR\n";
-        } elseif($frequency) {
+        } elseif ($frequency) {
             $icalendar .= "RRULE:FREQ=$frequency\n";
         }
         $icalendar .= "UID:$uuid\n";
@@ -155,12 +149,12 @@ class Schedule
         $this->create_schedule .= "<comment>$description</comment>";
         $this->create_schedule .= "<icalendar>$icalendar</icalendar>";
         $this->create_schedule .= "<timezone>$timezone</timezone>";
-        $this->create_schedule .= "</modify_schedule>";
+        $this->create_schedule .= '</modify_schedule>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Schedule Modification');
 
@@ -169,7 +163,7 @@ class Schedule
 
     public function delete($id)
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Schedule Deletion');
 
@@ -178,4 +172,3 @@ class Schedule
         return $this->get_delete_result = $socket->deleteSchedule($this->request, $id);
     }
 }
-

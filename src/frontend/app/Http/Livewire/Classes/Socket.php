@@ -10,24 +10,41 @@ use Illuminate\Support\Facades\Log;
 class Socket
 {
     private $au_response_clean = '';
+
     private $xml_response;
+
     private $json_encode_xml;
+
     private $json_decode_xml;
+
     private $create_stream;
+
     private $create_data;
+
     private $create_result;
+
     private $create_xml_clean;
+
     private $unixsocket = 'unix:///usr/local/var/run/mageni-sqlite.sock';
+
     private $authentication = '<authenticate><credentials><username>admin</username><password>admin</password></credentials></authenticate>';
+
     private $authentication_response = '<authenticate_response status="200" status_text="OK"><role>Admin</role><timezone>UTC</timezone><severity>nist</severity></authenticate_response>';
 
     public int $success = 0;
+
     public int $failure = 1;
+
     public int $statusMustBeNew = 7;
+
     public int $error400 = 5;
+
     public int $sshkey = 6;
+
     public int $refresh = 2;
+
     public int $isdown = 3;
+
     public int $isbool = 4;
 
     public function createScan($data)
@@ -36,34 +53,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -84,18 +100,19 @@ class Socket
         /**
          * Process create_task
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Created Scan ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Created Scan '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->success;
             } else {
                 Log::info('[FAILURE] Creating Scan ');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Creating Scan');
+
             return $this->isbool;
         }
     }
@@ -106,34 +123,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -154,23 +170,27 @@ class Socket
         /**
          * Process modify_scan
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 200) {
-                Log::info('[SUCCESS] Modified Scan ' . $id);
+                Log::info('[SUCCESS] Modified Scan '.$id);
+
                 return $this->success;
             } elseif ($this->json_decode_xml['@attributes']['status'] == 404) {
                 Log::error('[FAILURE] Scan could not be modified');
+
                 return $this->failure;
-            } elseif($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == "Status must be New to edit scanner") {
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == 'Status must be New to edit scanner') {
                 Log::info('[FAILURE] Error 404 editing scan');
+
                 return $this->statusMustBeNew;
             }
-        } elseif(is_null($this->json_decode_xml)) {
-            Log::info('[IS_NULL] Modified Scan ' . $id);
+        } elseif (is_null($this->json_decode_xml)) {
+            Log::info('[IS_NULL] Modified Scan '.$id);
+
             return $this->success;
         } else {
             Log::error('Returned Boolean while Modifying Scan');
+
             return $this->isbool;
         }
     }
@@ -181,34 +201,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -229,21 +248,23 @@ class Socket
         /**
          * Process create_target
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Created Asset ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Created Asset '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status'] == "Error in host specification") {
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status'] == 'Error in host specification') {
                 Log::error('[FAILURE] Error in host specification');
+
                 return $this->error400;
             } else {
                 Log::error('[FAILURE] Creating Asset');
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Creating Asset' . $this->json_decode_xml);
+            Log::error('Returned Boolean while Creating Asset'.$this->json_decode_xml);
+
             return $this->isbool;
         }
     }
@@ -254,34 +275,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -302,23 +322,27 @@ class Socket
         /**
          * Process modify_target
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 200) {
-                Log::info('[SUCCESS] Asset Modified ' . $id);
+                Log::info('[SUCCESS] Asset Modified '.$id);
+
                 return $id;
             } elseif ($this->json_decode_xml['@attributes']['status'] == 400) {
                 Log::alert('[WARNING] Asset Exists Already');
+
                 return $id;
             } elseif ($this->json_decode_xml['@attributes']['status'] == 404) {
                 Log::error('[FAILURE] Failed to find asset');
+
                 return $id;
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status'] == "Error in host specification") {
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status'] == 'Error in host specification') {
                 Log::error('[FAILURE] Error in host specification');
+
                 return $this->error400;
             }
         } else {
             Log::error('Returned Boolean while Modifying Asset');
+
             return $this->isbool;
         }
     }
@@ -329,34 +353,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -377,18 +400,19 @@ class Socket
         /**
          * Process create_schedule_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Created Schedule ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Created Schedule '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
             } else {
                 Log::error('[FAILURE] Creating Schedule ');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Modifying Schedule');
+
             return $this->isbool;
         }
     }
@@ -399,34 +423,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -447,20 +470,23 @@ class Socket
         /**
          * Process modify_schedule
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 200) {
-                Log::info('[SUCCESS] Schedule Modified ' . $id);
+                Log::info('[SUCCESS] Schedule Modified '.$id);
+
                 return $id;
             } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] === 'Schedule exists already') {
-                Log::alert('[WARNING] Schedule Exists Already ' . $id);
+                Log::alert('[WARNING] Schedule Exists Already '.$id);
+
                 return $id;
             } elseif ($this->json_decode_xml['@attributes']['status'] == 400) {
-                Log::error('[FAILURE] Invalid iCalendar ' . $id);
+                Log::error('[FAILURE] Invalid iCalendar '.$id);
+
                 return $id;
             }
         } else {
             Log::error('Returned Boolean while Modifying Schedule');
+
             return $this->isbool;
         }
     }
@@ -471,34 +497,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -516,22 +541,22 @@ class Socket
         $this->json_encode_xml = json_encode($this->xml_response);
         $this->json_decode_xml = json_decode($this->json_encode_xml, true);
 
-        
         /**
          * Process create_port_list_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Alert Created ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Alert Created '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
             } else {
                 Log::error('[FAILURE] Creating Alert');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Creating Alert');
+
             return $this->isbool;
         }
     }
@@ -542,34 +567,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -588,22 +612,23 @@ class Socket
         $this->json_decode_xml = json_decode($this->json_encode_xml, true);
 
         // Log::info('Creating Alert Log' . $this->xml_response);
-        
+
         /**
          * Process create_port_list_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
                 Log::info('[SUCCESS] Alert Modified');
+
                 return $this->success;
             } else {
                 Log::error('[FAILURE] Modifying Alert');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean Modifying Alert');
+
             return $this->isbool;
         }
     }
@@ -614,34 +639,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -662,18 +686,19 @@ class Socket
         /**
          * Process create_port_list_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Port List Created ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Port List Created '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
             } else {
                 Log::error('[FAILURE] Creating Port List');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Creating Port List');
+
             return $this->isbool;
         }
     }
@@ -684,34 +709,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -732,18 +756,19 @@ class Socket
         /**
          * Process create_credential_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] SMB Credential Created ' . $this->json_decode_xml['@attributes']['id']);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] SMB Credential Created '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
             } else {
                 Log::error('[FAILURE] Creating SMB Credential');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Creating SMB Credential');
+
             return $this->isbool;
         }
     }
@@ -754,34 +779,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -802,18 +826,19 @@ class Socket
         /**
          * Process modify_credential_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
-                Log::info('[SUCCESS] SMB Credential Modified ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
+                Log::info('[SUCCESS] SMB Credential Modified '.$id);
+
                 return $id;
             } else {
                 Log::error('[FAILURE] Modifying SMB Credential');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Modifying SMB Credential');
+
             return $this->isbool;
         }
     }
@@ -824,34 +849,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -872,20 +896,23 @@ class Socket
         /**
          * Process create_credentials_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 201) {
-                Log::info('[SUCCESS] SSH Credential Created ' . $this->json_decode_xml['@attributes']['id']);
+                Log::info('[SUCCESS] SSH Credential Created '.$this->json_decode_xml['@attributes']['id']);
+
                 return $this->json_decode_xml['@attributes']['id'];
-            } elseif($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == "Erroneous Private Key.") {
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == 'Erroneous Private Key.') {
                 Log::info('[FAILURE] Erroneous Private Key');
+
                 return $this->sshkey;
             } else {
                 Log::error('[FAILURE] Creating SSH Credential');
+
                 return $this->failure;
             }
         } else {
             Log::error('Returned Boolean while Creating SSH Credential');
+
             return $this->isbool;
         }
     }
@@ -896,34 +923,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -944,20 +970,23 @@ class Socket
         /**
          * Process modify_credential_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 200) {
-                Log::info('[SUCCESS] SSH Credential Modified ' . $id);
+                Log::info('[SUCCESS] SSH Credential Modified '.$id);
+
                 return $id;
-            } elseif($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == "Erroneous Private Key.") {
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 400 && $this->json_decode_xml['@attributes']['status_text'] == 'Erroneous Private Key.') {
                 Log::info('[FAILURE] Erroneous Private Key');
+
                 return $this->sshkey;
             } else {
-                Log::error('[FAILURE] Modifying SSH Credential ' . $id);
+                Log::error('[FAILURE] Modifying SSH Credential '.$id);
+
                 return $id;
             }
         } else {
-            Log::error('Returned Boolean while Modifying SSH Credential UUID ' . $id);
+            Log::error('Returned Boolean while Modifying SSH Credential UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -968,34 +997,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1016,23 +1044,27 @@ class Socket
         /**
          * Process start_scan_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
+        if (! is_bool($this->json_decode_xml)) {
             if ($this->json_decode_xml['@attributes']['status'] == 202) {
-                Log::info('[SUCCESS] Started Scan UUID ' . $id);
+                Log::info('[SUCCESS] Started Scan UUID '.$id);
+
                 return $this->success;
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Scanner loading KBs') ) {
-                Log::alert('[MESSAGE] Scanner is refreshing knowledge base. Please wait. ' . $this->json_decode_xml['@attributes']['status_text']);
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Scanner loading KBs')) {
+                Log::alert('[MESSAGE] Scanner is refreshing knowledge base. Please wait. '.$this->json_decode_xml['@attributes']['status_text']);
+
                 return $this->refresh;
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Service temporarily down') ) {
-                Log::error('[FAILURE] Backend is down. Please restart the services ' . $this->json_decode_xml['@attributes']['status_text']);
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Service temporarily down')) {
+                Log::error('[FAILURE] Backend is down. Please restart the services '.$this->json_decode_xml['@attributes']['status_text']);
+
                 return $this->isdown;
             } else {
-                Log::error("[FAILURE] Starting Scan UUID " . $id);
+                Log::error('[FAILURE] Starting Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Starting Scan UUID ' . $id);
+            Log::error('Returned Boolean while Starting Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1048,29 +1080,28 @@ class Socket
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1091,18 +1122,19 @@ class Socket
         /**
          * Process stop_scan_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 202) 
-            {
-                Log::info('[SUCCESS] Stopped Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 202) {
+                Log::info('[SUCCESS] Stopped Scan UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Stopping Scan UUID ' . $id);
+                Log::error('[FAILURE] Stopping Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Stopping Scan UUID ' . $id);
+            Log::error('Returned Boolean while Stopping Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1113,34 +1145,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1161,24 +1192,27 @@ class Socket
         /**
          * Process resume_task_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if ($this->json_decode_xml['@attributes']['status'] == 202) 
-            {
-                Log::info('[SUCCESS] Restarted Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 202) {
+                Log::info('[SUCCESS] Restarted Scan UUID '.$id);
+
                 return $this->success;
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Scanner loading KBs') ) {
-                Log::alert('[MESSAGE] Scanner is refreshing knowledge base. Please wait. ' . $this->json_decode_xml['@attributes']['status_text']);
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Scanner loading KBs')) {
+                Log::alert('[MESSAGE] Scanner is refreshing knowledge base. Please wait. '.$this->json_decode_xml['@attributes']['status_text']);
+
                 return $this->refresh;
-            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Service temporarily down') ) {
-                Log::error('[MESSAGE] Backend is down. Please restart the services ' . $this->json_decode_xml['@attributes']['status_text']);
+            } elseif ($this->json_decode_xml['@attributes']['status'] == 503 && str_contains($this->json_decode_xml['@attributes']['status_text'], 'Service temporarily down')) {
+                Log::error('[MESSAGE] Backend is down. Please restart the services '.$this->json_decode_xml['@attributes']['status_text']);
+
                 return $this->isdown;
             } else {
-                Log::error("[FAILURE] Restarting Scan UUID " . $id);
+                Log::error('[FAILURE] Restarting Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Restarting Scan UUID ' . $id);
+            Log::error('Returned Boolean while Restarting Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1189,34 +1223,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1237,18 +1270,19 @@ class Socket
         /**
          * Process delete_task_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
-                Log::info('[SUCCESS] Deleted Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
+                Log::info('[SUCCESS] Deleted Scan UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Deleting Scan UUID ' . $id);
+                Log::error('[FAILURE] Deleting Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Deleting Scan UUID ' . $id);
+            Log::error('Returned Boolean while Deleting Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1259,34 +1293,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1307,18 +1340,19 @@ class Socket
         /**
          * Process delete_task_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
-                Log::info('[SUCCESS] Locked Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
+                Log::info('[SUCCESS] Locked Scan UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Locking Scan UUID ' . $id);
+                Log::error('[FAILURE] Locking Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Locking Scan UUID ' . $id);
+            Log::error('Returned Boolean while Locking Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1329,34 +1363,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1377,18 +1410,19 @@ class Socket
         /**
          * Process delete_task_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
-                Log::info('[SUCCESS] Unlocked Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
+                Log::info('[SUCCESS] Unlocked Scan UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Unlocking Scan UUID ' . $id);
+                Log::error('[FAILURE] Unlocking Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Unlocking Scan UUID ' . $id);
+            Log::error('Returned Boolean while Unlocking Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1399,34 +1433,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1447,18 +1480,19 @@ class Socket
         /**
          * Process create_task_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if($this->json_decode_xml['@attributes']['status'] == 201) 
-            {
-                Log::info('[SUCCESS] Clone Scan UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 201) {
+                Log::info('[SUCCESS] Clone Scan UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Unlocking Scan UUID ' . $id);
+                Log::error('[FAILURE] Unlocking Scan UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Cloning Scan UUID ' . $id);
+            Log::error('Returned Boolean while Cloning Scan UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1469,34 +1503,33 @@ class Socket
          * Set Permissions
          */
         $this->setPermissions();
-        
+
         /**
          * Open Socket
          */
         $this->create_stream = stream_socket_client($this->unixsocket, $errno, $errstr, 30, STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT | STREAM_CLIENT_PERSISTENT);
-        
+
         /**
          * Exit if there is not socket connection
          */
-        if(!$this->create_stream) 
-        {
-            Log::error("No socket connection");
+        if (! $this->create_stream) {
+            Log::error('No socket connection');
+
             return 1;
         }
-       
+
         /**
          * Write data to socket
          */
-        $this->create_data   =  $this->authentication;
-        $this->create_data  .=  $data;
+        $this->create_data = $this->authentication;
+        $this->create_data .= $data;
         fwrite($this->create_stream, $this->create_data);
         stream_set_blocking($this->create_stream, false);
 
-        /** 
+        /**
          * Store Data in create_result and close stream
          */
-        while (!feof($this->create_stream)) 
-        {
+        while (! feof($this->create_stream)) {
             $this->create_result = stream_get_contents($this->create_stream);
             stream_socket_shutdown($this->create_stream, STREAM_SHUT_WR);
         }
@@ -1517,18 +1550,19 @@ class Socket
         /**
          * Process delete_schedule_response
          */
-        if(!is_bool($this->json_decode_xml))
-        {
-            if($this->json_decode_xml['@attributes']['status'] == 200) 
-            {
-                Log::info('[SUCCESS] Deleted Schedule UUID ' . $id);
+        if (! is_bool($this->json_decode_xml)) {
+            if ($this->json_decode_xml['@attributes']['status'] == 200) {
+                Log::info('[SUCCESS] Deleted Schedule UUID '.$id);
+
                 return $this->success;
             } else {
-                Log::error('[FAILURE] Deleting Schedule UUID ' . $id);
+                Log::error('[FAILURE] Deleting Schedule UUID '.$id);
+
                 return $this->failure;
             }
         } else {
-            Log::error('Returned Boolean while Deleting Schedule UUID ' . $id);
+            Log::error('Returned Boolean while Deleting Schedule UUID '.$id);
+
             return $this->isbool;
         }
     }
@@ -1536,31 +1570,30 @@ class Socket
     public function setPermissions()
     {
         /**
-        * Set Socket Permissions
-        */
-        $cmd = "sudo chown www-data:www-data /usr/local/var/run/mageni-sqlite.sock";
-        
-        system($cmd,$return_value);
-        
-        ($return_value == 0) or die("returned an error: $cmd");
+         * Set Socket Permissions
+         */
+        $cmd = 'sudo chown www-data:www-data /usr/local/var/run/mageni-sqlite.sock';
+
+        system($cmd, $return_value);
+
+        ($return_value == 0) or exit("returned an error: $cmd");
 
         /**
          * Set Log Permissions
          */
-        $cmd = "sudo chown www-data:www-data /var/www/html/storage/logs/laravel.log";
-        
-        system($cmd,$return_value);
-        
-        ($return_value == 0) or die("returned an error: $cmd");
+        $cmd = 'sudo chown www-data:www-data /var/www/html/storage/logs/laravel.log';
+
+        system($cmd, $return_value);
+
+        ($return_value == 0) or exit("returned an error: $cmd");
 
         /**
          * Set SQLite Permissions
          */
-        $cmd = "sudo chown www-data:www-data /usr/local/var/lib/mageni/sqlite/sqlite.*";
-        
-        system($cmd,$return_value);
-        
-        ($return_value == 0) or die("returned an error: $cmd");
-    }
+        $cmd = 'sudo chown www-data:www-data /usr/local/var/lib/mageni/sqlite/sqlite.*';
 
+        system($cmd, $return_value);
+
+        ($return_value == 0) or exit("returned an error: $cmd");
+    }
 }

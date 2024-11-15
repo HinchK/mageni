@@ -2,69 +2,97 @@
 
 namespace App\Http\Livewire\Dashboard;
 
-use Livewire\Component;
+use App\Models\Hosts;
 use App\Models\Results;
 use App\Models\Task;
-use App\Models\Hosts;
-use Illuminate\Support\Facades\DB;
 use App\Models\Version;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Page extends Component
 {
     public $allvuln;
+
     public $informational;
+
     public $criticalvuln;
+
     public $avgcvss;
+
     public $highvuln;
+
     public $mediumvuln;
+
     public $lowvuln;
+
     public $scansAll;
+
     public $scansNew;
+
     public $scansCompleted;
+
     public $scansRunning;
+
     public $scansStopped;
+
     public $vulnJan;
+
     public $vulnFeb;
+
     public $vulnMar;
+
     public $vulnApr;
+
     public $vulnMay;
+
     public $vulnJun;
+
     public $vulnJul;
+
     public $vulnAug;
+
     public $vulnSep;
+
     public $vulnOct;
+
     public $vulnNov;
+
     public $vulnDec;
+
     public $allAssets;
+
     public $top10Critical;
 
     public $endpoint;
-    public $version; 
-    public $license; 
+
+    public $version;
+
+    public $license;
+
     public $plan;
 
     public function mount()
     {
-        $this->endpoint = "https://www.mageni.net/api/v1/token/plan";
+        $this->endpoint = 'https://www.mageni.net/api/v1/token/plan';
 
         $this->version = Version::select('api_key')->find(1);
         $this->license = $this->version->api_key;
-       
+
         $response = Http::withToken($this->version->api_key)->get($this->endpoint);
 
-        if(Str::contains($response, 'paid')) {
+        if (Str::contains($response, 'paid')) {
             $this->plan = 'Paid';
-            Log::info("You are on the paid plan.");
+            Log::info('You are on the paid plan.');
         } else {
             $this->plan = 'Free';
-            Log::info("You are on the free plan.");
+            Log::info('You are on the free plan.');
         }
     }
-    
+
     public function allVuln(): int
     {
         return $this->allvuln = Results::distinct()
@@ -72,7 +100,7 @@ class Page extends Component
             ->where('severity', '>=', 0.1)
             ->count();
     }
-    
+
     public function top10Critical()
     {
         return $this->top10Critical = Results::distinct()
@@ -107,7 +135,7 @@ class Page extends Component
 
     public function vulnJan()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-02-01';
         $date2 = $year.'-01-01';
 
@@ -121,7 +149,7 @@ class Page extends Component
 
     public function vulnFeb()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-03-01';
         $date2 = $year.'-02-01';
 
@@ -135,7 +163,7 @@ class Page extends Component
 
     public function vulnMar()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-04-01';
         $date2 = $year.'-03-01';
 
@@ -149,7 +177,7 @@ class Page extends Component
 
     public function vulnApr()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-05-01';
         $date2 = $year.'-04-01';
 
@@ -163,7 +191,7 @@ class Page extends Component
 
     public function vulnMay()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-06-01';
         $date2 = $year.'-05-01';
 
@@ -177,7 +205,7 @@ class Page extends Component
 
     public function vulnJun()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-07-01';
         $date2 = $year.'-06-01';
 
@@ -191,7 +219,7 @@ class Page extends Component
 
     public function vulnJul()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-08-01';
         $date2 = $year.'-07-01';
 
@@ -205,7 +233,7 @@ class Page extends Component
 
     public function vulnAug()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-09-01';
         $date2 = $year.'-08-01';
 
@@ -219,7 +247,7 @@ class Page extends Component
 
     public function vulnSep()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-10-01';
         $date2 = $year.'-09-01';
 
@@ -233,7 +261,7 @@ class Page extends Component
 
     public function vulnOct()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-11-01';
         $date2 = $year.'-10-01';
 
@@ -247,7 +275,7 @@ class Page extends Component
 
     public function vulnNov()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-12-01';
         $date2 = $year.'-11-01';
 
@@ -261,7 +289,7 @@ class Page extends Component
 
     public function vulnDec()
     {
-        $year = date("Y");
+        $year = date('Y');
         $date1 = $year.'-12-31';
         $date2 = $year.'-12-01';
 
@@ -272,12 +300,12 @@ class Page extends Component
             ->whereRaw("datetime(results.date,'unixepoch') >= strftime(?)", [$date2])
             ->count();
     }
-    
+
     public function info(): int
     {
         return $this->informational = Results::distinct()
             ->select('results.id')
-            ->where('severity', '=', 0.0    )
+            ->where('severity', '=', 0.0)
             ->count();
     }
 
@@ -319,35 +347,35 @@ class Page extends Component
     public function tasksAll(): int
     {
         return $this->scansAll = Task::distinct()
-           ->count();
+            ->count();
     }
 
     public function tasksNew(): int
     {
         return $this->scansNew = Task::distinct()
-           ->where('run_status', '=',  2)
-           ->count();
+            ->where('run_status', '=', 2)
+            ->count();
     }
 
     public function tasksCompleted(): int
     {
         return $this->scansCompleted = Task::distinct()
-           ->where('run_status', '=',  1)
-           ->count();
+            ->where('run_status', '=', 1)
+            ->count();
     }
 
     public function tasksRunning(): int
     {
         return $this->scansRunning = Task::distinct()
-           ->where('run_status', '=',  4)
-           ->count();
+            ->where('run_status', '=', 4)
+            ->count();
     }
-    
+
     public function tasksStopped(): int
     {
         return $this->scansStopped = Task::distinct()
-           ->where('run_status', '=',  12)
-           ->count();
+            ->where('run_status', '=', 12)
+            ->count();
     }
 
     public function render(Request $request)
@@ -355,32 +383,32 @@ class Page extends Component
         // dd($request);
 
         return view('livewire.dashboard.page', [
-            'allvuln'           => $this->allVuln(),
-            'avgcvss'           => $this->average(),
-            'informational'     => $this->info(),
-            'criticalvuln'      => $this->criticalVuln(),
-            'highvuln'          => $this->highVuln(),
-            'mediumvuln'        => $this->mediumVuln(),
-            'lowvuln'           => $this->lowVuln(),
-            'scansAll'          => $this->tasksAll(),
-            'scansNew'          => $this->tasksNew(),
-            'scansCompleted'    => $this->tasksCompleted(),
-            'scansRunning'      => $this->tasksRunning(),
-            'scansStopped'      => $this->tasksStopped(),
-            'vulnJan'           => $this->vulnJan(),
-            'vulnFeb'           => $this->vulnFeb(),
-            'vulnMar'           => $this->vulnMar(),
-            'vulnApr'           => $this->vulnApr(),
-            'vulnMay'           => $this->vulnMay(),
-            'vulnJun'           => $this->vulnJun(),
-            'vulnJul'           => $this->vulnJul(),
-            'vulnAug'           => $this->vulnAug(),
-            'vulnSep'           => $this->vulnSep(),
-            'vulnOct'           => $this->vulnOct(),
-            'vulnNov'           => $this->vulnNov(),
-            'vulnDec'           => $this->vulnDec(),
-            'allAssets'         => $this->allAssets(),
-            'top10Critical'     => $this->top10Critical(),
+            'allvuln' => $this->allVuln(),
+            'avgcvss' => $this->average(),
+            'informational' => $this->info(),
+            'criticalvuln' => $this->criticalVuln(),
+            'highvuln' => $this->highVuln(),
+            'mediumvuln' => $this->mediumVuln(),
+            'lowvuln' => $this->lowVuln(),
+            'scansAll' => $this->tasksAll(),
+            'scansNew' => $this->tasksNew(),
+            'scansCompleted' => $this->tasksCompleted(),
+            'scansRunning' => $this->tasksRunning(),
+            'scansStopped' => $this->tasksStopped(),
+            'vulnJan' => $this->vulnJan(),
+            'vulnFeb' => $this->vulnFeb(),
+            'vulnMar' => $this->vulnMar(),
+            'vulnApr' => $this->vulnApr(),
+            'vulnMay' => $this->vulnMay(),
+            'vulnJun' => $this->vulnJun(),
+            'vulnJul' => $this->vulnJul(),
+            'vulnAug' => $this->vulnAug(),
+            'vulnSep' => $this->vulnSep(),
+            'vulnOct' => $this->vulnOct(),
+            'vulnNov' => $this->vulnNov(),
+            'vulnDec' => $this->vulnDec(),
+            'allAssets' => $this->allAssets(),
+            'top10Critical' => $this->top10Critical(),
         ]);
     }
 }

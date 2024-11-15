@@ -18,7 +18,7 @@ class Results extends Model
     public function getDates()
     {
         return [
-            'date'
+            'date',
         ];
     }
 }

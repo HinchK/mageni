@@ -2,51 +2,73 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
+use App\Http\Livewire\Traits\WithBulkActions;
+use App\Http\Livewire\Traits\WithSorting;
 use App\Models\User;
 use App\Models\Version;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Livewire\Component;
+use Livewire\WithPagination;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Http\Livewire\Traits\WithSorting;
-use App\Http\Livewire\Traits\WithBulkActions;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class UserManagement extends Component
 {
-    use WithSorting,
-        AuthorizesRequests,
+    use AuthorizesRequests,
         WithBulkActions,
-        WithPagination;
+        WithPagination,
+        WithSorting;
 
     public $usersPermissions;
+
     public $permissions;
+
     public $roles;
+
     public $role;
+
     public $name;
+
     public $password;
+
     public $email;
+
     public $modalFormVisible = false;
+
     public $modalDeleteUser = false;
+
     public $modalEditUser = false;
+
     public $user;
+
     public $userID;
+
     public $userName;
+
     public $userEmail;
+
     public $userPermissions;
+
     public $userPassword;
+
     public $toggleChangeRole = 'No';
+
     public $togglePasswordReset = 'No';
+
     public $userRoles;
+
     public $userRolesCollect;
 
     public $endpoint;
-    public $version; 
-    public $license; 
+
+    public $version;
+
+    public $license;
+
     public $plan;
 
     public $pageNumbers = 25;
@@ -66,19 +88,19 @@ class UserManagement extends Component
 
     public function mount()
     {
-        $this->endpoint = "https://www.mageni.net/api/v1/token/plan";
+        $this->endpoint = 'https://www.mageni.net/api/v1/token/plan';
 
         $this->version = Version::select('api_key')->find(1);
         $this->license = $this->version->api_key;
-       
+
         $response = Http::withToken($this->version->api_key)->get($this->endpoint);
 
-        if(Str::contains($response, 'paid')) {
+        if (Str::contains($response, 'paid')) {
             $this->plan = 'Paid';
-            Log::info("You are on the paid plan.");
+            Log::info('You are on the paid plan.');
         } else {
             $this->plan = 'Free';
-            Log::info("You are on the free plan.");
+            Log::info('You are on the free plan.');
         }
     }
 
@@ -91,7 +113,7 @@ class UserManagement extends Component
     {
         return $this->roles = Role::whereNotIn('name', ['root'])->get();
     }
-    
+
     public function getPermissions()
     {
         return $this->permissions = Permission::all()->pluck('name');
@@ -101,7 +123,7 @@ class UserManagement extends Component
     {
         return $this->users = User::get();
     }
-   
+
     public function getUsersPermissions()
     {
         return $this->usersPermissions = User::with('permissions')->paginate();
@@ -115,10 +137,10 @@ class UserManagement extends Component
             'name' => 'required|min:2',
             'email' => 'required|email',
             'password' => 'required|min:6|max:32',
-            'role' => 'required'
+            'role' => 'required',
         ]);
-        
-        $user = new User();
+
+        $user = new User;
         $user->name = $this->name;
         $user->email = $this->email;
         $user->password = Hash::make($this->password);
@@ -128,7 +150,7 @@ class UserManagement extends Component
         $this->closeUserModal();
 
         session()->flash('message', 'User created successfully');
- 
+
         return redirect()->to('/users');
     }
 
@@ -142,7 +164,7 @@ class UserManagement extends Component
             ->when($this->filters['email'], fn ($query, $email) => $query->where('email', $email))
             ->search('name', $this->search);
 
-       return $this->applySorting($query);
+        return $this->applySorting($query);
     }
 
     public function getRowsProperty()
@@ -156,7 +178,7 @@ class UserManagement extends Component
 
         $this->modalFormVisible = true;
     }
-  
+
     public function closeUserModal()
     {
         $this->modalFormVisible = false;
@@ -182,9 +204,9 @@ class UserManagement extends Component
         $this->userName = $this->user->name;
 
         $this->userEmail = $this->user->email;
-        
+
         $this->userPermissions = $this->user->getAllPermissions();
-        
+
         $this->userRoles = $this->user->getRoleNames();
 
         $this->modalEditUser = true;
@@ -210,7 +232,7 @@ class UserManagement extends Component
         $this->modalDeleteUser = false;
 
         session()->flash('message', 'User deleted successfully');
- 
+
         return redirect()->to('/users');
     }
 
@@ -218,25 +240,24 @@ class UserManagement extends Component
     {
         $this->authorize('edit_users');
 
-        if($this->togglePasswordReset === 'Yes')
-        {
+        if ($this->togglePasswordReset === 'Yes') {
             $this->validate([
                 'userName' => 'required|min:2',
                 'userEmail' => 'required|email',
-                'userPassword' => 'required|email'
+                'userPassword' => 'required|email',
             ]);
-        }elseif($this->toggleChangeRole === 'Yes') {
+        } elseif ($this->toggleChangeRole === 'Yes') {
             $this->validate([
                 'userName' => 'required|min:2',
                 'userEmail' => 'required|email',
-                'userRoles' => 'required'
+                'userRoles' => 'required',
             ]);
-        }elseif($this->toggleChangeRole === 'Yes' && 
+        } elseif ($this->toggleChangeRole === 'Yes' &&
                 $this->togglePasswordReset === 'Yes') {
             $this->validate([
                 'userName' => 'required|min:2',
                 'userEmail' => 'required|email',
-                'userPassword' => 'required|email'
+                'userPassword' => 'required|email',
             ]);
         }
 
@@ -244,8 +265,7 @@ class UserManagement extends Component
 
         $user->name = $this->userName;
         $user->email = $this->userEmail;
-        if(!is_null($this->userPassword))
-        {
+        if (! is_null($this->userPassword)) {
             $user->password = Hash::make($this->userPassword);
         }
         $user->syncRoles($this->userRoles);
@@ -254,24 +274,24 @@ class UserManagement extends Component
         $this->deleteModalClose();
 
         session()->flash('message', 'User modified successfully');
- 
+
         return redirect()->to('/users');
     }
 
     public function editModalClose()
     {
         $this->reset('userEmail', 'userName', 'toggleChangeRole', 'togglePasswordReset', 'userPassword');
-        
+
         $this->modalEditUser = false;
     }
 
     public function deleteModalClose()
     {
         $this->reset('userEmail', 'userName', 'toggleChangeRole', 'togglePasswordReset', 'userPassword');
-        
+
         $this->modalDeleteUser = false;
     }
-  
+
     public function closeDeleteUserModal()
     {
         $this->modalDeleteUser = false;

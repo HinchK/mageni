@@ -16,6 +16,6 @@ class Version extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'api_key'
+        'api_key',
     ];
 }

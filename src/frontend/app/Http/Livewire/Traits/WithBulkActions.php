@@ -5,7 +5,9 @@ namespace App\Http\Livewire\Traits;
 trait WithBulkActions
 {
     public $selected = [];
+
     public $selectAll = false;
+
     public $selectPage = false;
 
     public function updatedSelected()
@@ -17,7 +19,7 @@ trait WithBulkActions
     public function updatedSelectPage($value)
     {
         $this->selected = $value
-            ? $this->rows->pluck('id')->map(fn($id) => (string) $id)
+            ? $this->rows->pluck('id')->map(fn ($id) => (string) $id)
             : [];
     }
 
@@ -36,6 +38,6 @@ trait WithBulkActions
 
     public function getSelectedRowsQuery()
     {
-        return (clone $this->rowsQuery)->unless($this->selectAll, fn($query) => $query->whereKey($this->selected));
+        return (clone $this->rowsQuery)->unless($this->selectAll, fn ($query) => $query->whereKey($this->selected));
     }
 }
