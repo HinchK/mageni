@@ -10,57 +10,58 @@ use Illuminate\Support\Facades\Log;
 class Scan
 {
     public $get_create_result;
+
     public $get_modify_result;
+
     public $get_delete_result;
+
     public $get_clone_result;
+
     public $get_lock_result;
+
     public $get_unlock_result;
+
     public $get_resume_result;
+
     public $get_stop_result;
+
     public $get_start_result;
+
     private $request;
 
     /**
      * Create Scan
-     * @param $name
-     * @param $description
-     * @param $template
-     * @param $target
-     * @param $ordering
-     * @param $maxtests
-     * @param $maxhosts
-     * @param $scanner
-     * @param null $schedule
-     * @return bool
+     *
+     * @param  null  $schedule
      */
     public function create($name, $description, $template, $target, $ordering, $maxtests, $maxhosts, $scanner, $schedule = null, $alert = null): bool
     {
-        $this->request = "<create_task>";
+        $this->request = '<create_task>';
         $this->request .= "<name>$name</name>";
         $this->request .= "<comment>$description</comment>";
-        $this->request .= "<alterable>1</alterable>";
+        $this->request .= '<alterable>1</alterable>';
         $this->request .= "<config id='$template'/>";
         $this->request .= "<target id='$target'/>";
         $this->request .= "<hosts_ordering>$ordering</hosts_ordering>";
-        $this->request .= "<preferences>";
-        $this->request .= "<preference>";
-        $this->request .= "<scanner_name>max_checks</scanner_name>";
+        $this->request .= '<preferences>';
+        $this->request .= '<preference>';
+        $this->request .= '<scanner_name>max_checks</scanner_name>';
         $this->request .= "<value>$maxtests</value>";
-        $this->request .= "</preference>";
-        $this->request .= "<preference>";
-        $this->request .= "<scanner_name>max_hosts</scanner_name>";
+        $this->request .= '</preference>';
+        $this->request .= '<preference>';
+        $this->request .= '<scanner_name>max_hosts</scanner_name>';
         $this->request .= "<value>$maxhosts</value>";
-        $this->request .= "</preference>";
-        $this->request .= "</preferences>";
+        $this->request .= '</preference>';
+        $this->request .= '</preferences>';
         $this->request .= isset($alert) ? "<alert id='$alert'/>" : '';
         $this->request .= isset($schedule) ? "<schedule id='$schedule'/>" : '';
         $this->request .= "<scanner id='$scanner'/>";
-        $this->request .= "</create_task>";
+        $this->request .= '</create_task>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Creation');
 
@@ -69,45 +70,37 @@ class Scan
 
     /**
      * Modify Scan
-     * @param $name
-     * @param $description
-     * @param $template
-     * @param $target
-     * @param $ordering
-     * @param $maxtests
-     * @param $maxhosts
-     * @param $scanner
-     * @param null $schedule
-     * @return bool
+     *
+     * @param  null  $schedule
      */
     public function modify($id, $name, $description, $template, $target, $ordering, $maxtests, $maxhosts, $scanner, $schedule = null, $alert = null): bool
     {
         $this->request = "<modify_task task_id='$id'>";
         $this->request .= "<name>$name</name>";
         $this->request .= "<comment>$description</comment>";
-        $this->request .= "<alterable>1</alterable>";
+        $this->request .= '<alterable>1</alterable>';
         $this->request .= "<config id='$template'/>";
         $this->request .= "<target id='$target'/>";
         $this->request .= "<hosts_ordering>$ordering</hosts_ordering>";
-        $this->request .= "<preferences>";
-        $this->request .= "<preference>";
-        $this->request .= "<scanner_name>max_checks</scanner_name>";
+        $this->request .= '<preferences>';
+        $this->request .= '<preference>';
+        $this->request .= '<scanner_name>max_checks</scanner_name>';
         $this->request .= "<value>$maxtests</value>";
-        $this->request .= "</preference>";
-        $this->request .= "<preference>";
-        $this->request .= "<scanner_name>max_hosts</scanner_name>";
+        $this->request .= '</preference>';
+        $this->request .= '<preference>';
+        $this->request .= '<scanner_name>max_hosts</scanner_name>';
         $this->request .= "<value>$maxhosts</value>";
-        $this->request .= "</preference>";
-        $this->request .= "</preferences>";
+        $this->request .= '</preference>';
+        $this->request .= '</preferences>';
         $this->request .= isset($alert) ? "<alert id='$alert'/>" : '';
         $this->request .= isset($schedule) ? "<schedule id='$schedule'/>" : '';
         $this->request .= "<scanner id='$scanner'/>";
-        $this->request .= "</modify_task>";
+        $this->request .= '</modify_task>';
 
         /**
          * Connect to Socket
          */
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Modification');
 
@@ -116,12 +109,10 @@ class Scan
 
     /**
      * Start Scan
-     * @param $id
-     * @return bool
      */
-    public function start($id)
+    public function start($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Start');
 
@@ -132,12 +123,10 @@ class Scan
 
     /**
      * Stop Scan
-     * @param $id
-     * @return bool
      */
     public function stop($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Stop');
 
@@ -148,12 +137,10 @@ class Scan
 
     /**
      * Scan Resume
-     * @param $id
-     * @return bool
      */
     public function resume($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Resume');
 
@@ -164,12 +151,10 @@ class Scan
 
     /**
      * Scan Delete
-     * @param $id
-     * @return bool
      */
-    public function delete($id)
+    public function delete($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Deletion');
 
@@ -180,12 +165,10 @@ class Scan
 
     /**
      * Scan Archive
-     * @param $id
-     * @return bool
      */
-    public function lock($id)
+    public function lock($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Lock');
 
@@ -194,14 +177,12 @@ class Scan
         return $this->get_lock_result = $socket->lockScan($this->request, $id);
     }
 
-     /**
+    /**
      * Scan Unarchive
-     * @param $id
-     * @return bool
      */
-    public function unlock($id)
+    public function unlock($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Unlock');
 
@@ -212,12 +193,10 @@ class Scan
 
     /**
      * Scan Unarchive
-     * @param $id
-     * @return bool
      */
-    public function clone($id)
+    public function clone($id): bool
     {
-        $socket = new Socket();
+        $socket = new Socket;
 
         Log::info('Processing Scan Clone');
 

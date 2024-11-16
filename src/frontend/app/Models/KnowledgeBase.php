@@ -17,7 +17,7 @@ class KnowledgeBase extends Model
     {
         return [
             'creation_time',
-            'modification_time'
+            'modification_time',
         ];
     }
 }

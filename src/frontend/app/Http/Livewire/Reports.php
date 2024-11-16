@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Livewire\Component;
 
 class Reports extends Component
 {
@@ -13,7 +13,7 @@ class Reports extends Component
     {
         return redirect()->to('/reports/vulnerabilities');
     }
-    
+
     public function render()
     {
         return view('livewire.reports');

@@ -10,7 +10,7 @@ class Tasks extends Component
     public function render()
     {
         return view('livewire.scan.cards.tasks', [
-            'scans' => Task::count()
+            'scans' => Task::count(),
         ]);
     }
 }

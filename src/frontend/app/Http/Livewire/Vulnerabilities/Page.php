@@ -8,6 +8,7 @@ use Livewire\Component;
 class Page extends Component
 {
     public $vuln;
+
     public $details;
 
     public function mount($vuln = null)

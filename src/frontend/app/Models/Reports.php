@@ -14,11 +14,11 @@ class Reports extends Model
     protected $connection = 'sqlitemanager';
 
     const SOLUTION = [
-        'VendorFix' =>  'Patch',
-        'Mitigation' =>  'Mitigation',
-        'NoneAvailable' =>  'NoneAvailable',
-        'WillNotFix' =>  'WillNotFix',
-        'Workaround' =>  'Workaround',
+        'VendorFix' => 'Patch',
+        'Mitigation' => 'Mitigation',
+        'NoneAvailable' => 'NoneAvailable',
+        'WillNotFix' => 'WillNotFix',
+        'Workaround' => 'Workaround',
     ];
 
     public function getDates()
@@ -26,7 +26,7 @@ class Reports extends Model
         return [
             'date',
             'start_time',
-            'end_time'
+            'end_time',
         ];
     }
 }

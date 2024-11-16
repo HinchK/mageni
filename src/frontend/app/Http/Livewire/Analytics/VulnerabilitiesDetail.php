@@ -2,29 +2,28 @@
 
 namespace App\Http\Livewire\Analytics;
 
-use Livewire\Component;
+use App\Http\Livewire\Traits\Methods;
+use App\Http\Livewire\Traits\MultiStepForm;
+use App\Http\Livewire\Traits\Variables;
+use App\Http\Livewire\Traits\WithBulkActions;
+use App\Http\Livewire\Traits\WithSorting;
 use App\Models\Results;
-
+use Livewire\Component;
 use Livewire\WithPagination;
-use App\Http\Livewire\Traits\{
-    Methods,
-    Variables,
-    MultiStepForm,
-    WithBulkActions,
-    WithSorting
-};
 
 class VulnerabilitiesDetail extends Component
 {
-    use WithPagination,
-    WithSorting,
-    WithBulkActions,
-    Methods,
-    Variables,
-    MultiStepForm;
+    use Methods,
+        MultiStepForm,
+        Variables,
+        WithBulkActions,
+        WithPagination,
+        WithSorting;
 
     public $nvt;
+
     public $details;
+
     public $hosts;
 
     public function mount($nvt = null)
@@ -101,7 +100,7 @@ class VulnerabilitiesDetail extends Component
                 'results.port'
             )
             ->leftJoin('nvts', 'results.nvt', '=', 'nvts.oid')
-            ->get();      
+            ->get();
     }
 
     public function render()

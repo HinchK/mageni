@@ -2,34 +2,31 @@
 
 namespace App\Http\Livewire\Analytics;
 
-use Livewire\Component;
+use App\Http\Livewire\Traits\Methods;
+use App\Http\Livewire\Traits\MultiStepForm;
+use App\Http\Livewire\Traits\Variables;
+use App\Http\Livewire\Traits\WithBulkActions;
+use App\Http\Livewire\Traits\WithSorting;
 use App\Models\Results;
 use Illuminate\Support\Facades\DB;
-
+use Livewire\Component;
 use Livewire\WithPagination;
-use App\Http\Livewire\Traits\{
-    Methods,
-    Variables,
-    MultiStepForm,
-    WithBulkActions,
-    WithSorting
-};
 
 class Vulnerabilities extends Component
 {
-    use WithPagination,
-    WithSorting,
-    WithBulkActions,
-    Methods,
-    Variables,
-    MultiStepForm;
+    use Methods,
+        MultiStepForm,
+        Variables,
+        WithBulkActions,
+        WithPagination,
+        WithSorting;
 
     public $queryString = ['sortDirection'];
 
     public $filter = [
         'cvss_base' => '',
         'host' => '',
-        'Scan'  => '',
+        'Scan' => '',
         'CVSS' => '',
         'name' => '',
         'nvt' => '',
@@ -42,11 +39,15 @@ class Vulnerabilities extends Component
     ];
 
     public $allvuln;
+
     public $criticalvuln;
+
     public $highvuln;
+
     public $mediumvuln;
+
     public $lowvuln;
-    
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -60,33 +61,33 @@ class Vulnerabilities extends Component
     public function getRowsQueryProperty()
     {
         $query = Results::query()
-        ->where('results.type', '!=', 'Error Message')
-        ->distinct()
-        ->select(
-            'results.id',
-            'nvts.name',
-            'results.date',
-            'results.nvt',
-            DB::raw('COUNT(DISTINCT results.host) as hostcount'),
-            'nvts.cvss_base as cvss',
-            'nvts.family as category',
-            'tasks.name as scan',
-            'tasks.uuid'
-        )
-        ->leftJoin('nvts', 'results.nvt', '=', 'nvts.oid')
-        ->leftJoin('reports', 'results.report', '=', 'reports.id')
-        ->leftJoin('tasks', 'results.task', '=', 'tasks.id')
-        ->when($this->filter['Vulnerability'], fn ($query, $Vulnerability) => $query->where('Vulnerability', $Vulnerability))
-        ->when($this->filter['solution_type'], fn ($query, $solution_type) => $query->where('solution_type', $solution_type))
-        ->when($this->filter['Category'], fn ($query, $Category) => $query->where('Category', $Category))
-        ->when($this->filter['CVSS'], fn ($query, $CVSS) => $query->where('nvts.cvss_base', $CVSS))
-        ->orderBy('nvts.cvss_base', $this->sortDirection)
-        ->groupBy('nvts.name')
-        ->search('nvts.name', $this->search);
+            ->where('results.type', '!=', 'Error Message')
+            ->distinct()
+            ->select(
+                'results.id',
+                'nvts.name',
+                'results.date',
+                'results.nvt',
+                DB::raw('COUNT(DISTINCT results.host) as hostcount'),
+                'nvts.cvss_base as cvss',
+                'nvts.family as category',
+                'tasks.name as scan',
+                'tasks.uuid'
+            )
+            ->leftJoin('nvts', 'results.nvt', '=', 'nvts.oid')
+            ->leftJoin('reports', 'results.report', '=', 'reports.id')
+            ->leftJoin('tasks', 'results.task', '=', 'tasks.id')
+            ->when($this->filter['Vulnerability'], fn ($query, $Vulnerability) => $query->where('Vulnerability', $Vulnerability))
+            ->when($this->filter['solution_type'], fn ($query, $solution_type) => $query->where('solution_type', $solution_type))
+            ->when($this->filter['Category'], fn ($query, $Category) => $query->where('Category', $Category))
+            ->when($this->filter['CVSS'], fn ($query, $CVSS) => $query->where('nvts.cvss_base', $CVSS))
+            ->orderBy('nvts.cvss_base', $this->sortDirection)
+            ->groupBy('nvts.name')
+            ->search('nvts.name', $this->search);
 
         return $this->applySorting($query);
     }
-    
+
     public function getRowsCSVProperty()
     {
         $query = Results::query()
@@ -144,7 +145,7 @@ class Vulnerabilities extends Component
     {
         return response()->streamDownload(function () {
             echo (clone $this->rowsCSV)
-                ->unless($this->selectAll, fn($query) => $query->whereKey($this->selected))
+                ->unless($this->selectAll, fn ($query) => $query->whereKey($this->selected))
                 ->toCsv();
         }, 'results.csv');
     }
@@ -170,9 +171,9 @@ class Vulnerabilities extends Component
     public function criticalVuln(): int
     {
         return $this->criticalvuln = Results::distinct()
-        ->select('results.id')
-        ->where('results.severity', '>=', 9.0)
-        ->count();
+            ->select('results.id')
+            ->where('results.severity', '>=', 9.0)
+            ->count();
     }
 
     public function highVuln(): int
@@ -204,16 +205,16 @@ class Vulnerabilities extends Component
 
     public function render()
     {
-        if($this->selectAll) {
-            $this->selected = $this->rows->pluck('id')->map(fn($id) => (string) $id);
+        if ($this->selectAll) {
+            $this->selected = $this->rows->pluck('id')->map(fn ($id) => (string) $id);
         }
 
         return view('livewire.analytics.vulnerabilities', [
-            'details'       => $this->rows,
-            'criticalvuln'  => $this->criticalVuln(),
-            'highvuln'      => $this->highVuln(),
-            'mediumvuln'    => $this->mediumVuln(),
-            'lowvuln'       => $this->lowVuln(),
+            'details' => $this->rows,
+            'criticalvuln' => $this->criticalVuln(),
+            'highvuln' => $this->highVuln(),
+            'mediumvuln' => $this->mediumVuln(),
+            'lowvuln' => $this->lowVuln(),
         ]);
     }
 }

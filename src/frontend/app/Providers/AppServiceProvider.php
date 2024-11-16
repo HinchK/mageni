@@ -2,29 +2,39 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Builder;
-use Livewire\Component;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\ServiceProvider;
+use Livewire\Component;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * Register any application services.
+     * The path to the "home" route for your application.
      *
-     * @return void
+     * This is used by Laravel authentication to redirect users after login.
+     *
+     * @var string
      */
-    public function register()
+    public const HOME = '/dashboard';
+
+    /**
+     * Register any application services.
+     */
+    public function register(): void
     {
         //
     }
 
     /**
      * Bootstrap any application services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         URL::forceScheme('https');
 
@@ -43,7 +53,9 @@ class AppServiceProvider extends ServiceProvider
         Builder::macro('toCsv', function () {
             $results = $this->get();
 
-            if ($results->count() < 1) return;
+            if ($results->count() < 1) {
+                return;
+            }
 
             $titles = implode(',', array_keys((array) $results->first()->getAttributes()));
 
@@ -57,5 +69,23 @@ class AppServiceProvider extends ServiceProvider
 
             return $values->implode("\n");
         });
+
+        $this->bootAuth();
+        $this->bootRoute();
+    }
+
+    public function bootAuth(): void
+    {
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('root') ? true : null;
+        });
+    }
+
+    public function bootRoute(): void
+    {
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+
     }
 }

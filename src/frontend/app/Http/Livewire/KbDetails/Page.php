@@ -8,6 +8,7 @@ use Livewire\Component;
 class Page extends Component
 {
     public $uuid;
+
     public $details;
 
     public function mount($uuid = null)
@@ -70,7 +71,7 @@ class Page extends Component
     public function render()
     {
         return view('livewire.kb-details.page', [
-            'details' => $this->details()
+            'details' => $this->details(),
         ]);
     }
 }
